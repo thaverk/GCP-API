@@ -1,0 +1,46 @@
+name: Build, Publish, and Deploy ASP.NET Core App
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-publish-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Restore dependencies
+        run: dotnet restore PhasePlayWeb.csproj
+
+      - name: Build
+        run: dotnet build PhasePlayWeb.csproj --configuration Release --no-restore
+
+      - name: Publish app
+        run: dotnet publish PhasePlayWeb.csproj --configuration Release --output ./publish
+
+      - name: Copy files to VM
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.VM_HOST }}
+          username: ${{ secrets.VM_USER }}
+          key: ${{ secrets.VM_SSH_KEY }}
+          source: "./publish/*"
+          target: ${{ secrets.VM_TARGET_DIR }}
+
+      - name: Restart app on VM
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.VM_HOST }}
+          username: ${{ secrets.VM_USER }}
+          key: ${{ secrets.VM_SSH_KEY }}
+          script: |
+            sudo systemctl restart phaseplayweb.service
