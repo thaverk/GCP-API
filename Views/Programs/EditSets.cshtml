@@ -1,0 +1,138 @@
+﻿@model Tuple< List< PhasePlayWeb.Models.Entities.Excercises>,List<PhasePlayWeb.Models.Entities.S_RSchema>,PhasePlayWeb.Models.Entities.Programme>
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>PhasePlay.io</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
+    <link href="~/css/stylesheetphaseplay.css" rel="stylesheet" />
+    <link href="https://cdn.syncfusion.com/ej2/20.2.36/material.css" rel="stylesheet">
+    <script src="https://cdn.syncfusion.com/ej2/20.2.36/dist/ej2.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popperjs/core2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <style>
+        .select{
+            border-color:dimgray;
+            border-radius:10px;
+            color:dimgray;
+        }
+    </style>
+    
+</head> 
+<body>
+    <div class="container">
+        <div class="card col-md-6 mx-auto" style="border:10px;">
+            <h4 class="card-title text-center mb-4" style="margin-top:10px;">
+               New Workout
+            </h4>
+        
+            
+            <form method="post" asp-action="EditSets">
+                <input type="hidden" name="Sets[0].ProgramID" value="@Model.Item3.id" />
+                <div class="mb-3">
+
+                    <ejs-dropdownlist id="PhaseSelect" dataSource="@(new List<string> { "Hypertrophy", "Basic Strength", "Strength-Power", "Speed-Strength", "Strength-Speed", "Maintenance", "Active Rest" })"
+                                      fields="@(new Syncfusion.EJ2.DropDowns.DropDownListFieldSettings { Text = "Name", Value = "Id" })"
+                                  name="Sets[0].Name" placeholder="Select Phase">
+                    </ejs-dropdownlist>
+                </div>
+
+                <div class="mb-3">
+                    <label class="col-form-label">Add a Note</label>
+                    <input class="col-form-input" type="text" name="Sets[0].AddNote" />
+
+                </div>
+                    <div style="height: 300px; overflow: auto;">
+                <div id="setsContainer">
+                        <scrollview>
+                            <div class="card mb-3 set">
+                                <label for="exercise1" class="form-label">Select Exercise</label>
+                                <select class="form-select col-md-8 exercise-select" name="Sets[0].Exercise">
+                                    @foreach (var item in Model.Item1)
+                                    {
+                                        <option value="@item.Id">@item.Name</option>
+                                    }
+                                </select>
+                                <label for="schema" class="form-label">Select Schema </label>
+                                <select class="form-select schema-select  col-md-8" name="Sets[0].SchemaID">
+                                    @foreach (var item in Model.Item2)
+                                    { 
+                                        <option value="@item.id">@item.name</option>
+                                    }
+                                </select>
+
+                                 &nbsp;&nbsp;&nbsp;&nbsp;
+                                <button type="button" class="btn btn-outline-danger removeSetButton" style="display: none;">Remove</button>
+                            </div>
+                        </scrollview>
+                </div>
+                   
+                        <div class=" d-flex align-content-center" >
+                            <button type="button" class="btn btn-primary " id="addSetButton">Add Workout</button>
+                        </div>
+            </div>
+                   
+                   
+                        
+                        <div class="d-flex justify-content-end" style="margin-top:15px;padding:10px;">
+                            <button type="button" class="btn btn-secondary" onclick="clearForm()">Clear</button>   
+                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            <button type="submit" class="btn btn-primary">Save</button>
+                        </div>
+
+
+                    
+
+               
+            </form>
+            
+        </div>
+
+    </div>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            var setIndex = 1;
+
+            $('#addSetButton').click(function () {
+                var newSet = $('.set').first().clone();
+                newSet.find('input').val('');
+                newSet.find('.removeSetButton').show();
+
+                newSet.find('input, select').each(function () {
+                    var name = $(this).attr('name');
+                    var newName = name.replace(/\[0\]/, '[' + setIndex + ']');
+                    $(this).attr('name', newName);
+                });
+
+                $('#setsContainer').append(newSet);
+                newSet.find('.exercise-select').select2();
+                newSet.find('.schema-select').select2();
+                setIndex++;
+            });
+
+            $(document).on('click', '.removeSetButton', function () {
+                $(this).closest('.set').remove();
+            });
+
+        });
+    </script>
+    <script>
+           function clearForm() {
+           // Clear the input fields
+           $('input[type="text"]').val('');
+
+           // Reset the select dropdowns
+           $('select').val('');
+
+           // Remove all dynamically added sets
+           $('.set').not(':first').remove();
+           }
+    </script>
+</body>
+</html>

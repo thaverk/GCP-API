@@ -1,0 +1,338 @@
+﻿@model Tuple<List<PhasePlayWeb.Models.Entities.S_RSchema>, List<PhasePlayWeb.Models.Entities.SchemaAttributes>,List<PhasePlayWeb.Models.Entities.PercentRM_Mapping>>
+
+@{
+    ViewData["Title"] = "Edit Schema";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>PhasePlay.io</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
+    <link href="~/css/stylesheetphaseplay.css" rel="stylesheet" />
+    <!-- Add jQuery reference -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h2>Edit Schema</h2>
+        <div class="card col-md-10 mx-auto" style="margin-top:20px;padding:10px;">
+            <form id="editSchemaForm">
+                <div id="schemas-container">
+                    <label> New Schema Name </label>
+                    <input type="text" class="form-control col-6" name="name" value="(Copy) @Model.Item1[0].name" />
+                    &nbsp;&nbsp;&nbsp;
+                    @for (int i = 0; i < Model.Item1.Count; i++)
+                    {
+                        <div class="schema-container">
+                            <input type="hidden" name="schemas[@i].id" value="@Model.Item1[i].id" />
+                            <input type="hidden" class="form-control" name="schemas[@i].name" value="@Model.Item1[i].name" />
+                            <input type="hidden" class="form-control" name="schemas[@i].SetWeek" value="@Model.Item1[i].SetWeek" />
+
+                            <table class="table table-bordered schemas-table">
+                                <thead>
+                                    <tr>
+                                        <th>Set</th>
+                                        <th>Reps</th>
+                                        <th>PercentRM</th>
+                                        <th>RPE</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @for (int j = 0; j < Model.Item2.Count; j++)
+                                    {
+                                        if (Model.Item2[j].SchemaID == Model.Item1[i].id)
+                                        {
+                                            <tr>
+                                                <td class="set-counter"></td>
+                                                <td>
+                                                    <input type="hidden" name="newAttributes[@j].id" value="@Model.Item2[j].id" />
+                                                    <input type="hidden" name="newAttributes[@j].SchemaID" value="@Model.Item2[j].SchemaID" />
+                                                    <input class="form-control" name="newAttributes[@j].Reps" value="@Model.Item2[j].Reps" />
+                                                </td>
+                                                <td>
+                                                    <select class="form-control percent-rm-select" name="newAttributes[@j].PercentRM" onchange="updateRPEandVelocity(this, @j)">
+                                                        <option value="@Model.Item2[j].PercentRM">@Model.Item2[j].PercentRM</option>
+                                                        @foreach (var mapping in Model.Item3)
+                                                        {
+                                                            <option value="@mapping.PercentRM" data-rpe="@mapping.RPE" data-velocity="@mapping.VelocityRange">@mapping.PercentRM</option>
+                                                        }
+                                                    </select>
+                                                </td>
+
+                                                <td>
+                                                    <input class="form-control" name="newAttributes[@j].RPE" value="@Model.Item2[j].RPE" />
+
+                                                </td>
+
+                                                <td>
+                                                    <div class="d-flex">
+                                                        <button type="button" class="btn" onclick="removeRow(this)"><i class="fas fa-trash" aria-hidden="true"></i></button>
+                                                        &nbsp;&nbsp;
+                                                        <button type="button" class="btn" onclick="copyPaste(this)"><i class="fas fa-copy" aria-hidden="true"></i></button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        }
+                                    }
+                                </tbody>
+                            </table>
+                            <button type="button" class="btn" onclick="addSchemaRow(this, @i, @Model.Item1[i].id)"><i class="fas fa-plus" aria-hidden="true"></i></button>
+                            &nbsp;&nbsp;
+                        </div>
+                    }
+
+                </div>
+                <button type="button" class="btn btn-primary" onclick="submitForm()">Save Current Schema</button>
+                <button type="button" class="btn btn-primary" onclick="SaveForm()">Save as New Schema</button>
+            </form>
+        </div>
+    </div>
+    <script>
+        // Store percent RM options for reuse in new rows
+        let percentRmOptions = '';
+        document.addEventListener('DOMContentLoaded', function() {
+            const defaultSelect = document.querySelector('.percent-rm-select');
+            if (defaultSelect) {
+                percentRmOptions = defaultSelect.innerHTML;
+            }
+            updateSetCounters();
+        });
+
+         function updateRPEandVelocity(selectElement, rowIndex) {
+            const selectedOption = selectElement.options[selectElement.selectedIndex];
+            const rpeValue = selectedOption.getAttribute('data-rpe');
+            const velocityValue = selectedOption.getAttribute('data-velocity');
+
+            const row = selectElement.closest('tr');
+            const rpeInput = row.querySelector('input[name*="RPE"]');
+            const velInput = row.querySelector('input[name*="Vel"]');
+
+            if (rpeInput && rpeValue) {
+                rpeInput.value = rpeValue;
+            }
+
+            if (velInput && velocityValue) {
+                velInput.value = velocityValue;
+            }
+        }
+
+        function removeRow(button) {
+            const row = button.closest('tr');
+            row.remove();
+            updateSetCounters();
+        }
+
+        function addSchemaRow(button, schemaIndex, modelid) {
+            const container = button.closest('.schema-container');
+            const table = container.querySelector('.schemas-table tbody');
+            const rows = table.querySelectorAll('tr');
+            const newIndex = Date.now(); // Use timestamp to ensure unique index
+
+            const newRow = document.createElement('tr');
+            newRow.innerHTML = `
+                 <td class="set-counter"></td>
+               <td>
+                 <input type="hidden" name="newAttributes[${newIndex}].id" value="0" />
+                    <input type="hidden" name="newAttributes[${newIndex}].SchemaID" value="${modelid}" />
+                    <input type="number" class="form-control" name="newAttributes[${newIndex}].Reps" required />
+                </td>
+                <td>
+                    <select class="form-control percent-rm-select" name="newAttributes[${newIndex}].PercentRM" onchange="updateRPEandVelocity(this, ${newIndex})">
+                        ${percentRmOptions}
+                    </select>
+                </td>
+                <td>
+                    <input type="number" class="form-control" name="newAttributes[${newIndex}].RPE" step="0.1" required />
+                </td>
+                <td>
+                    <div class="d-flex">
+                        <button type="button" class="btn" onclick="removeRow(this)"><i class="fas fa-trash" aria-hidden="true"></i></button>
+                        &nbsp;&nbsp;
+                        <button type="button" class="btn" onclick="copyPaste(this)"><i class="fas fa-copy" aria-hidden="true"></i></button>
+                    </div>
+                </td>
+            `;
+
+            table.appendChild(newRow);
+            updateSetCounters();
+        }
+
+        function copyPaste(button) {
+            // Get the row to be copied
+            const sourceRow = button.closest('tr');
+
+            // Get schema container and its associated table
+            const container = button.closest('.schema-container');
+            const table = container.querySelector('.schemas-table tbody');
+
+            // Get the SchemaID from the source row
+            const schemaID = sourceRow.querySelector('input[type="hidden"]').value;
+
+            // Extract index from the name attribute of the hidden input
+            const nameAttr = sourceRow.querySelector('input[type="hidden"]').name;
+            const index = nameAttr.match(/\[(\d+)\]/)[1];
+
+            // Create a new row
+            const newRow = document.createElement('tr');
+
+            // Get input values from source row
+            const repsValue = sourceRow.querySelector('input[name*="Reps"]').value;
+            const percentRMValue = sourceRow.querySelector('input[name*="PercentRM"]').value;
+            const rpeValue = sourceRow.querySelector('input[name*="RPE"]').value;
+            const velValue = sourceRow.querySelector('input[name*="Vel"]').value;
+
+            // Create the HTML for the new row with copied values
+            newRow.innerHTML = `
+                <td></td>
+                <td></td>
+                <td class="set-counter"></td>
+                <td>
+                    <input type="hidden" name="schemaAttributes[${index}].SchemaID" value="${schemaID}" />
+                    <input type="number" class="form-control" name="schemaAttributes[${index}].Reps" value="${repsValue}" required />
+                </td>
+                <td>
+                    <input type="number" class="form-control" name="schemaAttributes[${index}].PercentRM" value="${percentRMValue}" step="0.1" required />
+                </td>
+                <td>
+                    <input type="number" class="form-control" name="schemaAttributes[${index}].RPE" value="${rpeValue}" step="0.1" required />
+                </td>
+                <td>
+                    <input type="text" class="form-control" name="schemaAttributes[${index}].Vel" value="${velValue}" />
+                </td>
+                <td>
+                    <div class="d-flex">
+                        <button type="button" class="btn" onclick="removeRow(this)"><i class="fas fa-trash" aria-hidden="true"></i></button>
+                        &nbsp;&nbsp;
+                        <button type="button" class="btn" onclick="copyPaste(this)"><i class="fas fa-copy" aria-hidden="true"></i></button>
+                    </div>
+                </td>
+            `;
+
+            // Insert the new row after the source row
+            sourceRow.after(newRow);
+
+            // Update set counters
+            updateSetCounters();
+        }
+
+        function updateSetCounters() {
+            const tables = document.querySelectorAll('.schemas-table');
+            tables.forEach(table => {
+                const counters = table.querySelectorAll('.set-counter');
+                counters.forEach((counter, index) => {
+                    counter.textContent = index + 1;
+                });
+            });
+        }
+
+        function submitForm() {
+            const rows = document.querySelectorAll('.schemas-table tbody tr');
+            const schemaAttributes = [];
+            const schemaName = document.querySelector('input[name="name"]').value;
+
+            rows.forEach((row) => {
+                const id = row.querySelector('input[name*="id"]').value;
+                const schemaID = row.querySelector('input[name*="SchemaID"]').value;
+                const reps = row.querySelector('input[name*="Reps"]').value;
+                const percentRMElement = row.querySelector('select[name*="PercentRM"], input[name*="PercentRM"]');
+                const percentRM = percentRMElement.value;
+                const rpe = row.querySelector('input[name*="RPE"]').value;
+
+                schemaAttributes.push({
+                    SchemaID: schemaID,
+                    Reps: reps,
+                    PercentRM: percentRM,
+                    RPE: rpe,
+                    id: id
+                });
+            });
+
+            if (schemaAttributes.length === 0) {
+                alert('No schema attributes provided.');
+                return;
+            }
+
+            const data = { SchemaAttributes: schemaAttributes, SchemaName: schemaName };
+
+            console.log('Data to be sent:', data);
+
+            $.ajax({
+                url: '@Url.Action("EditSchema", "Exercise")',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(data),
+                success: function (response) {
+                    if (response.success) {
+                        alert('Data submitted successfully!');
+                        window.location.href = '@Url.Action("Templates", "TemplateManagement")';
+                    } else {
+                        alert('Error: ' + (response.message || 'Unknown error'));
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error('AJAX error:', xhr.responseText);
+                    alert('An error occurred: ' + error);
+                }
+            });
+        }
+
+        function SaveForm() {
+            const rows = document.querySelectorAll('.schemas-table tbody tr');
+            const schemaAttributes = [];
+            const schemaName = document.querySelector('input[name="name"]').value;
+
+            rows.forEach((row) => {
+                const id = row.querySelector('input[name*="id"]').value;
+                const schemaID = row.querySelector('input[name*="SchemaID"]').value;
+                const reps = row.querySelector('input[name*="Reps"]').value;
+                const percentRMElement = row.querySelector('select[name*="PercentRM"], input[name*="PercentRM"]');
+                const percentRM = percentRMElement.value;
+                const rpe = row.querySelector('input[name*="RPE"]').value;
+
+                schemaAttributes.push({
+                    SchemaID: schemaID,
+                    Reps: reps,
+                    PercentRM: percentRM,
+                    RPE: rpe,
+                    id: id
+                });
+            });
+
+            if (schemaAttributes.length === 0) {
+                alert('No schema attributes provided.');
+                return;
+            }
+
+            const data = { SchemaAttributes: schemaAttributes, SchemaName: schemaName };
+
+            console.log('Data to be sent:', data);
+
+            $.ajax({
+                url: '@Url.Action("SaveNewSchema", "Exercise")',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(data),
+                success: function (response) {
+                    if (response.success) {
+                        alert('Data submitted successfully!');
+                        window.location.href = '@Url.Action("Templates", "TemplateManagement")';
+                    } else {
+                        alert('Error: ' + (response.message || 'Unknown error'));
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error('AJAX error:', xhr.responseText);
+                    alert('An error occurred: ' + error);
+                }
+            });
+        }
+
+        
+
+        document.addEventListener('DOMContentLoaded', updateSetCounters);
+    </script>
+</body>
+</html>

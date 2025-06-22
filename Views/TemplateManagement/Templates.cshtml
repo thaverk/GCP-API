@@ -1,0 +1,339 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+
+@using PhasePlayWeb.Data;
+@model PhasePlayWeb.Models.TemplateManagementVM
+
+@inject ApplicationDbContext dBContext
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Team Management</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="~/css/stylesheetphaseplay.css" rel="stylesheet" />
+    <link href="https://cdn.syncfusion.com/ej2/20.2.36/material.css" rel="stylesheet">
+    <script src="https://cdn.syncfusion.com/ej2/20.2.36/dist/ej2.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.21/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.21/js/dataTables.bootstrap4.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            // Initialize DataTables
+            $('#datatables3').DataTable();
+
+            // Save the active tab to local storage
+            $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+                localStorage.setItem('activeTab', $(e.target).attr('href'));
+            });
+
+            // Retrieve the active tab from local storage and activate it
+            var activeTab = localStorage.getItem('activeTab');
+            if (activeTab) {
+                $('.nav-tabs a[href="' + activeTab + '"]').tab('show');
+            } else {
+                // If no tab is saved in local storage, activate the first tab by default
+                $('.nav-tabs a:first').tab('show');
+            }
+
+            // Ensure the clicked tab becomes active
+            $('.nav-tabs a').on('click', function (e) {
+                e.preventDefault();
+                $(this).tab('show');
+                localStorage.setItem('activeTab', $(this).attr('href'));
+            });
+
+            
+
+            $('#addToGroupModal').on('show.bs.modal', function (event) {
+                var button = $(event.relatedTarget); // Button that triggered the modal
+                var programId = button.data('id'); // Extract info from data-* attributes
+                var programName = button.data('name'); // Extract the program name
+
+                var modal = $(this);
+                modal.find('.modal-body input#programId').val(programId);
+                modal.find('.modal-title span#programName').text(programName); // Set the program name
+            });
+
+            $('#saveGroupButton').on('click', function () {
+                $('#addToGroupForm').submit();
+            });
+
+            $('#teamSelect').on('change', function () {
+                var teamId = $(this).val();
+                var groupSelect = $('#groupSelect');
+
+                // Clear the group dropdown
+                groupSelect.empty();
+                groupSelect.append('<option value="">Select a group</option>');
+
+                if (teamId) {
+                    console.log("Fetching groups for teamId: " + teamId); // Debugging log
+                    // Fetch groups based on the selected team
+                    $.ajax({
+                        url: '@Url.Action("GetGroupsByTeam", "TemplateManagement")',
+                        type: 'GET',
+                        data: { teamId: teamId },
+                        success: function (data) {
+                            console.log("Groups fetched: ", data); // Debugging log
+                            // Populate the group dropdown with the fetched data
+                            $.each(data, function (index, group) {
+                                groupSelect.append('<option value="' + group.id + '">' + group.name + '</option>');
+                            });
+                        },
+                        error: function (xhr, status, error) {
+                            console.error("Error fetching groups: ", error); // Debugging log
+                        }
+                    });
+                }
+            });
+
+            $('.btn-delete-program').on('click', function (e) {
+                e.preventDefault();
+                var itemid = $(this).data('id');
+                var row = $(this).closest('tr');
+
+                if (confirm('Are you sure you want to delete this Programme?')) {
+                    $.ajax({
+                        url: '@Url.Action("DeleteProgramme", "Programs")',
+                        type: 'POST',
+                        data: { id: itemid },
+                        success: function (result) {
+                            if (result.success) {
+                                row.remove();
+                            } else {
+                                alert(result.message || 'Error deleting schema.');
+                            }
+                        },
+                        error: function () {
+                            alert('Error deleting schema.');
+                        }
+                    });
+                }
+            });
+
+                  $('#saveNewProgramButton').on('click', function() {
+                        // Get form values
+                        const programName = $('#name').val();
+                        const numberOfWeeks = $('#weeks').val();
+                        const programPhase = $('#PhaseSelect').val();
+
+                        // Validate the form
+                        if (!programName || !numberOfWeeks || !programPhase) {
+                            alert('Please fill in all required fields.');
+                            return;
+                        }
+
+                        // Close the modal
+                        $('#newProgramModal').modal('hide');
+
+                        // Redirect to program creation page with parameters
+                        window.location.href = '@Url.Action("newProgramCreation", "Programs")' +
+                            '?name=' + encodeURIComponent(programName) +
+                            '&weeks=' + encodeURIComponent(numberOfWeeks) +
+                            '&phase=' + encodeURIComponent(programPhase);
+                  });
+
+        });
+    </script>
+    <style>
+        .container .nav-tabs {
+            font-size: 16px;
+            font-weight: bold;
+            color: dimgray;
+            border-bottom: none; /* Remove the line under nav-tabs */
+        }
+
+            .container .nav-tabs .nav-link {
+                font-size: 16px;
+                font-weight: bold;
+                color: dimgray;
+            }
+
+       media max-width: 768px {
+            .nav-tabs .nav-item
+            {
+                flex: 1 1 auto;
+                text-align: center;
+            }
+
+            .nav-tabs .nav-link {
+                font-size: 14px;
+                padding: 10px;
+            }
+       }
+    </style>
+</head>
+<body>
+
+        <div class="ms-md-auto py-2 py-md-0" style="margin-top:10px;">
+            <button type="button" class="btn btn-primary btn-round" data-toggle="modal" data-target="#newProgramModal">
+                <span>New Program</span>
+            </button>
+        </div>
+
+        <!-- New Program Modal -->
+        <div class="modal fade" id="newProgramModal" tabindex="-1" role="dialog" aria-labelledby="newProgramModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="newProgramModalLabel">Create New Program</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="newProgramForm" method="post" action="@Url.Action("newProgram", "Programs")">
+                            <div class="form-group ">
+                                <label for="name">Program Name:</label>
+                                <input type="text" class="form-control col-6" id="name" name="Name" required>
+                            </div>
+                            &nbsp;&nbsp;&nbsp;
+                            <div class="form-group">
+                                <label for="weeks">Number of Weeks:</label>
+                                <input type="number" class="form-control col-3" id="weeks" name="Weeks" min="1" max="52" required oninput="updateWeekContainers()">
+                            </div>
+                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            <div class="col-6">
+                                <label for="weeks">Select Phase:</label>
+                                <ejs-dropdownlist id="PhaseSelect" dataSource="@(new List<string> { "Hypertrophy", "Basic Strength", "Strength-Power", "Speed-Strength", "Strength-Speed", "Maintenance", "Active Rest" })"
+                                                    fields="@(new Syncfusion.EJ2.DropDowns.DropDownListFieldSettings { Text = "Name", Value = "Id" })">
+                                </ejs-dropdownlist>
+                            </div>
+
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-primary" id="saveNewProgramButton">Create Program</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <table id="datatables3" class="display table border-0" style="padding:10px;">
+
+            <thead>
+                <tr>
+                    <th> Name</th>
+                    <th> Owner</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                @foreach (var item in Model.Programmes)
+                {
+                    <tr data-id="@item.id">
+
+                        <td>@item.Name</td>
+                        <td>PhasePlay</td>
+                        <td>
+                            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#addToGroupModal" data-id="@item.id" data-name="@item.Name">
+                                Assign
+                            </button>
+                            &nbsp;&nbsp;&nbsp;&nbsp;
+                            <button type="button" class="btn" onclick="location.href='@Url.Action("ViewProgramInCreator", "Programs", new { id = item.id })'">
+                                <i class="fas fa-eye" aria-hidden="true"></i>
+                            </button>
+                            <button type="button" class="btn btn-delete-program" data-id="@item.id" style="margin-left: 5px;">
+                                <i class="fas fa-trash" aria-hidden="true"></i>
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+
+        </table>
+
+        
+    
+
+                    
+        <!-- Add to Group Modal -->
+        <div class="modal fade" id="addToGroupModal" tabindex="-1" role="dialog" aria-labelledby="addToGroupModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="addToGroupModalLabel"><span id="programName"></span></h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="addToGroupForm" method="post" action="@Url.Action("AddProgramToGroup", "TemplateManagement")">
+                            <input type="hidden" id="programId" name="programId" />
+                            <div class="form-group">
+                                <label for="teamSelect">Select Team</label>
+                                <select class="form-control" id="teamSelect" name="teamId" required>
+                                    <option value="">Select a team</option>
+                                    @foreach (var team in Model.Teams)
+                                    {
+                                        <option value="@team.Id">@team.Name</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="groupSelect">Select Group</label>
+                                <select class="form-control" id="groupSelect" name="groupId" required>
+                                    <option value="">Select a group</option>
+                                    <!-- Groups will be populated dynamically based on the selected team -->
+                                </select>
+                            </div>
+                            <div class="alert alert-danger">
+                                Please Make Sure The Starting Date is on a Monday!
+                            </div>
+                            <div class="form-group">
+                                <label for="startDatePicker">Start Date</label>
+                                <input type="date" class="form-control" id="startDatePicker" name="startDate" required />
+                            </div>
+                            <div class="form-group">
+                                <label>Days of the Week</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="monday" name="daysOfWeek" value="MO">
+                                    <label class="form-check-label" for="monday">Monday</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="tuesday" name="daysOfWeek" value="TU">
+                                    <label class="form-check-label" for="tuesday">Tuesday</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="wednesday" name="daysOfWeek" value="WE">
+                                    <label class="form-check-label" for="wednesday">Wednesday</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="thursday" name="daysOfWeek" value="TH">
+                                    <label class="form-check-label" for="thursday">Thursday</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="friday" name="daysOfWeek" value="FR">
+                                    <label class="form-check-label" for="friday">Friday</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="saturday" name="daysOfWeek" value="SA">
+                                    <label class="form-check-label" for="saturday">Saturday</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="sunday" name="daysOfWeek" value="SU">
+                                    <label class="form-check-label" for="sunday">Sunday</label>
+                                </div>
+                            </div>
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle"></i> Programs will be assigned for the full day.
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary" id="saveGroupButton">Save changes</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+</body>
+</html>

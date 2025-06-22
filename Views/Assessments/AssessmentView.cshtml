@@ -1,0 +1,123 @@
+﻿@* @model IEnumerable<PhasePlayWeb.Models.Entities.PlayerPhysicalTesting> *@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Assessment View</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="~/css/stylesheetphaseplay.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
+    <link href="https://cdn.syncfusion.com/ej2/20.2.36/material.css" rel="stylesheet">
+    <script src="https://cdn.syncfusion.com/ej2/20.2.36/dist/ej2.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popperjs/core2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        @* @foreach (var item in Model)
+        {
+            <h1>Name of Assessment</h1>
+            <div class="row justify-content-center">
+                <div class="col-md-3">
+                    <h2>Select Option</h2>
+                    <select class="form-control mb-2">
+                        <option value="option1">Body Weight</option>
+                        <option value="option2">Shoulder R (IR)</option>
+                        <option value="option3">Shoulder R (ER)</option>
+                    </select>
+                </div>
+            </div>
+            <br/>
+            <div class="row justify-content-between">
+                <div class="col-md-2">
+                    <select class="form-control mb-2">
+                        <option value="option1">Select Group</option>
+                        <option value="option2">Group 1</option>
+                        <option value="option3">Group 2</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <input type="text" class="form-control mb-2" placeholder="Search Player">
+                </div>
+            </div>
+            <br/>
+            <div class="row justify-content-center">
+                <div class="col-md-6">
+                    <h2>Player Name</h2>
+                    <br/>
+                    <h5 class="font-weight-bold">@item.Name</h5>
+                </div>
+                <div class="col-md-3">
+                    <h2>Enter Value</h2>
+                    <br />
+                    <input type="text" class="form-control mb-2" placeholder="Enter value for John Doe">
+                </div>
+            </div>
+            <br/>
+            <br />
+            <br />
+            <div class="row justify-content-center">
+                <button class="btn-md btn-primary col-md-2">
+                    Submit
+                </button>
+            </div>
+            <br/>
+        } *@
+        <div class="row justify-content-center">
+            <div class="col-md-12">
+                <h2>Player Physical Testings</h2>
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            @* <th>Date</th> *@
+                            <th>Name</th>
+                            @* <th>Height (m)</th> *@
+                            <th>Body Weight (kg)</th>
+                            <th>Broad Jump (dbl)</th>
+                            <th>RM Bench</th>
+                            <th>RM Squat</th>
+                            <th>Pull Ups</th>
+                            <th>Bronco</th>
+                            <th>TenMSprint</th>
+                            <th>Test505L</th>
+                            <th>Test505R</th>
+                            <th>DiffLR</th>
+                            <th>Squat Relative</th>
+                            <th>Bench Relative</th>
+                            <th>AgilityT</th>
+                            <th>Repeated Sprints</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                @* <td>@item.Date</td> *@
+                                <td>@item.Name</td>
+                                @* <td>@item.HeightM</td> *@
+                                <td>@item.BodyWeightKg</td>
+                                <td>@item.B_JumpDBL</td>
+                                <td>@item.RMBench</td>
+                                <td>@item.RMSquat</td>
+                                <td>@item.PullUps</td>
+                                <td>@item.Bronco</td>
+                                <td>@item.TenMSprint</td>
+                                <td>@item.Test505L</td>
+                                <td>@item.Test505R</td>
+                                <td>@item.DiffLR</td>
+                                <td>@item.SquatRelative</td>
+                                <td>@item.BenchRelative</td>
+                                <td>@item.AgilityT</td>
+                                <td>@item.RepeatedSprints</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

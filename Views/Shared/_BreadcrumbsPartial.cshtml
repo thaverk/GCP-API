@@ -1,0 +1,65 @@
+﻿@{
+    var segments = Context.Request.Path.Value.Split('/', StringSplitOptions.RemoveEmptyEntries);
+    var path = "/";
+
+    // Check if the current path is the Athlete dashboard
+    bool isAthleteDashboard = (segments.Length == 2 &&
+                              segments[0].Equals("AthleteViews", StringComparison.OrdinalIgnoreCase) &&
+                              segments[1].Equals("AthleteDashboard", StringComparison.OrdinalIgnoreCase));
+
+    // Don't render breadcrumbs if we're on the Athlete dashboard
+    if (isAthleteDashboard)
+    {
+        return;
+    }
+
+    // Check if we have a program name in ViewData
+    string programName = ViewData["ProgramName"] as string;
+}
+
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item">
+            <a href="@(
+                User.IsInRole("Athlete")
+                ? Url.Action("AthleteDashboard", "AthleteViews")
+                : Url.Action("ProgressDashboard", "ProgressDashboard")
+            )">Home</a>
+        </li>
+        @for (int i = 0; i < segments.Length; i++)
+        {
+            path += segments[i] + "/";
+
+            // Skip all but the last segment
+            if (i < segments.Length - 1)
+            {
+                continue; // Skip rendering this breadcrumb item
+            }
+
+            // For ProgramView or MissedProgramView, show the program name instead of the action name
+            if ((segments[i].Equals("ProgramView", StringComparison.OrdinalIgnoreCase) ||
+            segments[i].Equals("MissedProgramView", StringComparison.OrdinalIgnoreCase)) &&
+            !string.IsNullOrEmpty(programName))
+            {
+                <li class="breadcrumb-item active" aria-current="page">
+                    @programName
+                </li>
+            }
+            else
+            {
+                // Only the last segment will reach this point
+                <li class="breadcrumb-item active" aria-current="page">
+                    @ToTitleCase(segments[i])
+                </li>
+            }
+        }
+    </ol>
+</nav>
+
+@functions {
+    private string ToTitleCase(string text)
+    {
+        text = text.Replace("-", " ").Replace("_", " ");
+        return System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(text.ToLower());
+    }
+}

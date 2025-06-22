@@ -1,0 +1,247 @@
+﻿@using PhasePlayWeb.Data;
+@model PhasePlayWeb.Models.DashboardViewModel
+@inject ApplicationDbContext dBContext
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>PhasePlay.io</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popperjs/core2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+
+</head>
+<body>
+    <div class="container">
+        <div class="page-inner">
+            <!--Buttons-->
+            <div class="d-flex align-items-right align-items-md-center flex-column flex-md-row pt-2 pb-4">
+                <div class="ms-md-auto py-2 py-md-0">
+                    <a href="@Url.Action("WorkoutBuilder", "Programs")" class="btn btn-primary btn-round">
+                        
+                        <span>New Program</span>
+                    </a>
+                    <a href="@Url.Action("TeamBuilder", "Teams")" class="btn btn-primary btn-round">
+                        <i class="fas fa-people-group"></i>
+                        <span>New Team</span>
+                    </a>
+                    <a href="#" class="btn btn-primary btn-round" data-toggle="modal" data-target="#assignProgramModal">
+                        
+                        <span>Assign Program</span>
+                    </a>
+                    <!-- Modal -->
+                    <div class="modal fade" id="assignProgramModal" tabindex="-1" role="dialog" aria-labelledby="assignProgramModalLabel" aria-hidden="true">
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="assignProgramModalLabel">Assign Program</h5>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    <form id="assignProgramForm">
+                                        <div class="form-group">
+                                            <label for="groupSelect">Select Team</label>
+                                            <select class="form-control" id="groupSelect" name="groupId" required>
+                                                <option value="">Select a group</option>
+                                               
+                                            </select>
+                                        </div>
+                                            
+                                            <div class="form-group overflow-scroll">
+                                                <label for="programSelect">Select Program</label>
+                                                <div class="checkbox-list">
+                                                    <div class="form-check">
+                                                       
+
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        <div class="form-group">
+                                            <label for="startDatePicker">Start Date</label>
+                                            <input type="date" class="form-control" id="startDatePicker" name="startDate" required>
+                                        </div>
+                                        
+                                            
+                                                
+                                            
+                                    </form>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                    <button type="button" class="btn btn-primary" id="assignProgramButton">Assign</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!--Basic Information-->
+            <div class="row">
+                <div class="col-sm-6 col-md-3">
+                    <div class="card card-stats card-round">
+                        <div class="card-body">
+                            <div class="row align-items-center">
+                                <div class="col-icon">
+                                    <div class="icon-big text-center icon-primary bubble-shadow-small">
+                                        <i class="fas fa-users"></i>
+                                    </div>
+                                </div>
+                                <div class="col col-stats ms-3 ms-sm-0">
+                                    <div class="numbers">
+                                        <p class="card-category">Team Name</p>
+                                        <h4 class="card-title"></h4>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-md-3">
+                    <div class="card card-stats card-round">
+                        <div class="card-body">
+                            <div class="row align-items-center">
+                                <div class="col-icon">
+                                    <div class="icon-big text-center icon-info bubble-shadow-small">
+                                        <i class="fas fa-user-check"></i>
+                                    </div>
+                                </div>
+                                <div class="col col-stats ms-3 ms-sm-0">
+                                    <div class="numbers">
+                                        <p class="card-category">Members</p>
+                                        <h4 class="card-title"></h4>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-md-3">
+                    <div class="card card-stats card-round">
+                        <div class="card-body">
+                            <div class="row align-items-center">
+                                <div class="col-icon">
+                                    <div class="icon-big text-center icon-secondary bubble-shadow-small">
+                                        <i class="far fa-check-circle"></i>
+                                    </div>
+                                </div>
+                                <div class="col col-stats ms-3 ms-sm-0">
+                                    <div class="numbers">
+                                        <p class="card-category">Current Programs</p>
+                                        <h4 class="card-title"></h4>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-md-3">
+                    <div class="card card-stats card-round">
+                        <div class="card-body">
+                            <div class="row align-items-center">
+                                <div class="col-icon">
+                                    <div class="icon-big text-center icon-secondary bubble-shadow-small">
+                                        <i class="far fa-check-circle"></i>
+                                    </div>
+                                </div>
+                                <div class="col col-stats ms-3 ms-sm-0">
+                                    <div class="numbers">
+                                        <p class="card-category"></p>
+                                        <h4 class="card-title"></h4>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!--Calender and To-do List-->
+        <div class="row">
+            <div class="col-md-8">
+                <div id="calendar"></div>
+            </div>   
+            <div class="col-md-4">
+                <div class="card card-stats card-round">
+                    <div class="card-body">
+                        <h4 class="card-title">To-Do List</h4>
+                        <ul class="list-group">
+                            <li class="list-group-item">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="task1">
+                                    <label class="form-check-label" for="task1">Task 1</label>
+                                </div>
+                            </li>
+                            <li class="list-group-item">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="task2">
+                                    <label class="form-check-label" for="task2">Task 2</label>
+                                </div>
+                            </li>
+                            <li class="list-group-item">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="task3">
+                                    <label class="form-check-label" for="task3">Task 3</label>
+                                </div>
+                            </li>
+                            <li class="list-group-item">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="task4">
+                                    <label class="form-check-label" for="task4">Task 4</label>
+                                </div>
+                            </li>
+                            <li class="list-group-item">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="task5">
+                                    <label class="form-check-label" for="task5">Task 5</label>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        $(document).ready(function() {
+            $('#calendar').fullCalendar({
+                // Add your FullCalendar options here
+                header: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'month,agendaWeek,agendaDay'
+                },
+                defaultDate: new Date(),
+                navLinks: true,
+                editable: true,
+                eventLimit: true,
+                events: [
+                    // Add your events here
+                ]
+
+            });
+        });
+    </script>
+    <script>
+    $(document).ready(function () {
+           
+    });
+    </script>
+    <script>
+        $(document).ready(function () {
+            $('#assignProgramButton').click(function () {
+                var selectedProgram = $('#programSelect').val();
+                var selectedGroup = $('#groupSelect').val();
+
+        });
+    </script>
+    <
+
+</body>
+</html>

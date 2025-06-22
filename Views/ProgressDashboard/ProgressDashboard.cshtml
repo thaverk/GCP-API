@@ -1,0 +1,1921 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+
+@using PhasePlayWeb.Data;
+@model PhasePlayWeb.Models.ProgressionVM;
+
+
+@inject ApplicationDbContext dBContext
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Progress Dashboard</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
+    <link href="~/css/workoutbuilder.css" rel="stylesheet" />
+    <link href="~/css/workoutbuilder-custom.css" rel="stylesheet" />
+    <link href="https://cdn.syncfusion.com/ej2/20.2.36/material.css" rel="stylesheet">
+    <script src="https://cdn.syncfusion.com/ej2/20.2.36/dist/ej2.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popperjs/core2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            $('#datatables1').DataTable();
+            $('#datatables2').DataTable();
+        });
+    </script>
+    <style>
+        .container .nav-tabs {
+            font-size: 16px;
+            font-weight: bold;
+            color: dimgray;
+            border-bottom: none; /* Remove the line under nav-tabs */
+        }
+
+            .container .nav-tabs .nav-link {
+                font-size: 16px;
+                font-weight: bold;
+                color: dimgray;
+            }
+
+        /* Date range dropdown styles */
+        /* Date range dropdown styles refinements */
+        .date-range-dropdown {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+        }
+
+            .date-range-dropdown .dropdown-menu {
+                min-width: 220px;
+                padding: 10px;
+            }
+
+            .date-range-dropdown .dropdown-item {
+                padding: 0.5rem 1rem;
+                cursor: pointer;
+            }
+
+                .date-range-dropdown .dropdown-item:hover {
+                    background-color: #f1f1f1;
+                }
+
+                .date-range-dropdown .dropdown-item.active {
+                    background-color: #007bff;
+                    color: white;
+                }
+
+        .custom-date-inputs {
+            display: none;
+            padding: 0.5rem;
+        }
+
+        .date-range-display {
+            background-color: #f8f9fa;
+            border: 1px solid #ced4da;
+            padding: 0.375rem 0.75rem;
+            border-radius: 0.25rem;
+            cursor: pointer;
+            width: 100%;
+            display: inline-block;
+        }
+
+            .date-range-display:hover {
+                background-color: #e9ecef;
+            }
+
+        .bg-gradient-primary {
+            background: linear-gradient(45deg, #007bff, #0056b3);
+        }
+
+        .card {
+            transition: all 0.2s ease;
+        }
+
+            .card.shadow-sm {
+                box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important;
+            }
+
+            .card.border-0 {
+                border: none !important;
+            }
+
+            .card.rounded-lg {
+                border-radius: 0.5rem !important;
+            }
+
+        .progress {
+            border-radius: 50px;
+            overflow: hidden;
+        }
+
+        .badge-pill {
+            padding: 0.35em 0.65em;
+            border-radius: 50px;
+        }
+
+        .badge-primary {
+            background-color: #007bff;
+        }
+
+        .badge-success {
+            background-color: #28a745;
+        }
+
+        .table thead th {
+            border-top: none;
+            background-color: #f8f9fa;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.5px;
+        }
+
+        .accordion .card-header {
+            cursor: pointer;
+        }
+
+        .chart-header-filters {
+            display: flex;
+            align-items: center;
+        }
+
+            .chart-header-filters .form-group {
+                margin-bottom: 0;
+                margin-left: 10px;
+            }
+
+            .chart-header-filters .date-range-dropdown {
+                width: 180px;
+            }
+
+            .chart-header-filters .date-range-display {
+                font-size: 0.875rem;
+                padding: 0.25rem 0.5rem;
+            }
+
+            /* Make the Period selector smaller */
+            .chart-header-filters #PeriodSelect {
+                width: 110px;
+            }
+
+        /* Stats card styles for exercise analytics */
+        .stat-card {
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            background-color: #f8f9fa;
+            text-align: center;
+            box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
+            transition: all 0.2s ease;
+        }
+
+            .stat-card:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.1);
+            }
+
+            .stat-card h6 {
+                color: #6c757d;
+                margin-bottom: 10px;
+                font-size: 0.8rem;
+                text-transform: uppercase;
+                font-weight: 600;
+                letter-spacing: 0.5px;
+            }
+
+            .stat-card h2 {
+                font-size: 1.5rem;
+                color: #343a40;
+                margin: 0;
+                font-weight: bold;
+            }
+
+
+    </style>
+
+</head>
+  <body>
+        <h2 style="font-family:'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;font-weight:bold; " >Welcome back, @Model.User.Name</h2>
+        <ul class="nav nav-tabs">
+            <li class="nav-item">
+                <a class="nav-link active" id="tab1" data-toggle="tab" href="#tab-content1">Calendar</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="tab2" data-toggle="tab" href="#tab-content2">Analytics</a>
+            </li>
+        </ul>
+
+        <div class="tab-content">
+        <div class="tab-pane fade" id="tab-content2">
+            <h6 style="margin-bottom:20px;margin-top:10px;">View your teams progress below</h6>
+
+            <div class="row">
+                <!-- Mini Sidebar for Filters -->
+                <div class="col-md-3 col-lg-2">
+                    <div class="card">
+                        <div class="card-header bg-light">
+                            <h6 class="mb-0">Filters</h6>
+                        </div>
+                        <div class="card-body p-3">
+                            <!-- Team Filter -->
+                            <div class="form-group mb-3">
+                                <label for="TeamSelect">Team</label>
+                                <select id="TeamSelect" class="form-control form-control-sm">
+                                    <option value="">Select Team</option>
+                                    @foreach (var team in Model.Teams)
+                                    {
+                                        <option value="@team.Id">@team.Name</option>
+                                    }
+                                </select>
+                            </div>
+
+                            <!-- Group Filter -->
+                            <div class="form-group mb-3">
+                                <label for="GroupSelect">Group</label>
+                                <select id="GroupSelect" class="form-control form-control-sm" disabled>
+                                    <option value="">Select Group</option>
+                                </select>
+                            </div>
+
+                            <!-- Athlete Filter -->
+                            <div class="form-group mb-3">
+                                <label for="AthleteSelect">Athlete</label>
+                                <select id="AthleteSelect" class="form-control form-control-sm" disabled>
+                                    <option value="">Select Athlete</option>
+                                </select>
+                            </div>
+
+                            <!-- Exercise Filter -->
+                            <div class="form-group mb-3">
+                                <label for="ExerciseDropdown">Exercise</label>
+                                <select id="ExerciseDropdown" class="form-control form-control-sm" disabled>
+                                    <option value="">Select Exercise</option>
+                                </select>
+                            </div>
+
+                            <!-- Date Range Filter -->
+                            
+                                <input type="hidden" id="StartDate" />
+                                <input type="hidden" id="EndDate" />
+                                <input type="hidden" id="PeriodSelect" value="weekly" />
+                           
+
+                            <!-- Period Filter -->
+                            
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Main Content Area -->
+                <div class="col-md-9 col-lg-10">
+                    <div class="card">
+                        <div class="card-body">
+                            <!-- Add this right before the progressChartContainer div (around line 309) -->
+                           x
+
+                            <!-- Modified Chart Header with Date Range and Period selectors -->
+                            <div id="chartHeader" class="d-flex justify-content-between align-items-center mb-3" style="display: none;">
+                                <h5 class="mb-0"><span id="chartExerciseName"></span></h5>
+
+                                <div class="chart-header-filters">
+                                    <!-- Period Filter -->
+                                    <div class="form-group">
+                                        <select id="chartPeriodSelect" class="form-control form-control-sm">
+                                            <option value="daily">Daily</option>
+                                            <option value="weekly" selected>Weekly</option>
+                                            <option value="monthly">Monthly</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Date Range Filter -->
+                                    <div class="form-group">
+                                        <div class="date-range-dropdown">
+                                            <div class="date-range-display dropdown-toggle" id="chartDateRangeDisplay" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                Last 2 months
+                                            </div>
+                                            <div class="dropdown-menu dropdown-menu-right" aria-labelledby="chartDateRangeDisplay">
+                                                <a class="dropdown-item" data-range="last7days">Last 7 days</a>
+                                                <a class="dropdown-item" data-range="last2weeks">Last 2 weeks</a>
+                                                <a class="dropdown-item" data-range="last4weeks">Last 4 weeks</a>
+                                                <a class="dropdown-item active" data-range="last2months">Last 2 months <i class="fas fa-check"></i></a>
+                                                <a class="dropdown-item" data-range="last3months">Last 3 months</a>
+                                                <a class="dropdown-item" data-range="last6months">Last 6 months</a>
+                                                <a class="dropdown-item" data-range="last12months">Last 12 months</a>
+                                                <a class="dropdown-item" data-range="custom">Custom</a>
+                                                <div class="custom-date-inputs" id="chartCustomDateInputs">
+                                                    <div class="form-group">
+                                                        <label for="chartCustomStartDate">Start Date</label>
+                                                        <input type="date" id="chartCustomStartDate" class="form-control form-control-sm" />
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label for="chartCustomEndDate">End Date</label>
+                                                        <input type="date" id="chartCustomEndDate" class="form-control form-control-sm" />
+                                                    </div>
+                                                    <button type="button" class="btn btn-sm btn-primary w-100" id="chartApplyCustomDates">Apply</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+
+                            <div id="progressChartContainer" class="my-4"></div>
+
+
+                            <!-- Missed Sessions Card -->
+                            <div id="missedSessionsCard" class="row mb-4" style="display: none;">
+                                <div class="col-12">
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <h5 class="card-title">Missed Sessions Summary</h5>
+                                            <div class="row">
+                                                <div class="col-md-3 text-center mb-3">
+                                                    <div class="h1 text-danger" id="missedSessionsCount">0</div>
+                                                    <div class="text-muted">Total Missed</div>
+                                                </div>
+                                                <div class="col-md-3 text-center mb-3">
+                                                    <div class="h1" id="completionRate">0%</div>
+                                                    <div class="text-muted">Completion Rate</div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="progress" style="height: 24px; margin-top: 15px;">
+                                                        <div id="completionProgressBar" class="progress-bar bg-success" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                                                    </div>
+                                                    <div class="d-flex justify-content-between mt-1">
+                                                        <small>Missed: <span id="missedText">0</span></small>
+                                                        <small>Completed: <span id="completedText">0</span></small>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="mt-3" id="missedSessionsDetails" style="max-height: 200px; overflow-y: auto;">
+                                                <!-- Missed sessions details will be populated here -->
+                                                <div class="text-center text-muted" id="noMissedSessions">No missed sessions found</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Exercise Statistics Card -->
+                            <div id="exerciseStatsCard" class="card shadow-sm border-0 rounded-lg mb-4" style="display: none;">
+                                <div class="card-header bg-gradient-primary text-white">
+                                    <h5 class="mb-0">Exercise Statistics</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row mb-4">
+                                        <div class="col-md-4">
+                                            <div class="stat-card">
+                                                <h6>PERSONAL RECORD</h6>
+                                                <h2 id="exerciseMaxWeight">0 kg</h2>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="stat-card">
+                                                <h6>AVERAGE WEIGHT</h6>
+                                                <h2 id="exerciseAvgWeight">0 kg</h2>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="stat-card">
+                                                <h6>TOTAL SESSIONS</h6>
+                                                <h2 id="exerciseSessionCount">0</h2>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+
+
+                            <!-- Comparison Cards Container -->
+                            <div id="comparisonCardsContainer" class="row mb-4" style="display: none;">
+                                <div class="col-md-6">
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <h5 class="card-title">Athlete vs Team</h5>
+                                            <div id="athleteToTeamComparison">
+                                                <p class="mb-1">Athlete Average: <span id="athleteAverage"></span></p>
+                                                <p class="mb-1">Team Average: <span id="teamAverage"></span></p>
+                                                <div class="progress mt-2">
+                                                    <div id="athleteToTeamProgress" class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                                                </div>
+                                                <p class="text-center mt-1"><span id="athleteToTeamPercentage"></span></p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <h5 class="card-title">Athlete vs Group</h5>
+                                            <div id="athleteToGroupComparison">
+                                                <p class="mb-1">Athlete Average: <span id="athleteAverageGroup"></span></p>
+                                                <p class="mb-1">Group Average: <span id="groupAverage"></span></p>
+                                                <div class="progress mt-2">
+                                                    <div id="athleteToGroupProgress" class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                                                </div>
+                                                <p class="text-center mt-1"><span id="athleteToGroupPercentage"></span></p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Exercise History Section -->
+                            <!-- Exercise History Section -->
+                            <div id="exerciseHistoryCard" class="card shadow-sm border-0 rounded-lg mb-4" style="display: none;">
+                                <div class="card-header bg-gradient-primary text-white d-flex justify-content-between align-items-center">
+                                    <h5 class="mb-0">Exercise History</h5>
+                                    <span class="badge badge-primary badge-pill" id="exerciseNameBadge"></span>
+
+                                </div>
+                                <div class="card-body">
+                                    <div id="historyContent">
+                                        <!-- History content will be populated here -->
+                                        <div class="text-center text-muted py-5" id="noHistoryMessage">
+                                            <i class="fas fa-dumbbell fa-3x mb-3 text-light"></i><br>
+                                            Select an athlete and exercise to view history
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+            <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+            <script>
+                console.log("Script loaded"); // Debug: Confirm script is loaded
+
+                // Helper to get current filter values
+                function getFilters() {
+                    return {
+                        teamId: document.getElementById('TeamSelect').value || null,
+                        groupId: document.getElementById('GroupSelect').value || null,
+                        athleteId: document.getElementById('AthleteSelect').value || null,
+                        exerciseId: document.getElementById('ExerciseDropdown').value || null,
+                        period: document.getElementById('PeriodSelect').value || 'weekly',
+                        startDate: document.getElementById('StartDate').value || null,
+                        endDate: document.getElementById('EndDate').value || null
+                    };
+                }
+
+                // Function to load exercise statistics based on selected exercise
+                function loadExerciseStats() {
+                    var filters = getFilters();
+
+                    // Only show exercise stats if both athlete and exercise are selected
+                    if (!filters.athleteId || !filters.exerciseId) {
+                        document.getElementById('exerciseStatsCard').style.display = 'none';
+                        return;
+                    }
+
+                    // Fetch exercise statistics data
+                    fetch(`@Url.Action("GetExerciseStats", "ProgressDashboard")?athleteId=${filters.athleteId}&exerciseId=${filters.exerciseId}`)
+                        .then(r => r.json())
+                        .then(data => {
+                            console.log("Exercise statistics data:", data);
+
+                            if (data.error) {
+                                console.error(data.error);
+                                document.getElementById('exerciseStatsCard').style.display = 'none';
+                                return;
+                            }
+
+                            // Update the stats with the received data
+                            document.getElementById('exerciseMaxWeight').textContent = data.maxWeight ? `${data.maxWeight} kg` : '0 kg';
+                            document.getElementById('exerciseAvgWeight').textContent = data.avgWeight ? `${data.avgWeight} kg` : '0 kg';
+                            document.getElementById('exerciseSessionCount').textContent = data.sessions || '0';
+
+                            // Show the card
+                            document.getElementById('exerciseStatsCard').style.display = 'block';
+                        })
+                        .catch(error => {
+                            console.error('Error fetching exercise statistics:', error);
+                            document.getElementById('exerciseStatsCard').style.display = 'none';
+                        });
+                }
+
+                // Load groups and athletes when team changes
+                document.getElementById('TeamSelect').addEventListener('change', function () {
+                    var teamId = this.value;
+                    var groupSelect = document.getElementById('GroupSelect');
+                    var athleteSelect = document.getElementById('AthleteSelect');
+                    var exerciseSelect = document.getElementById('ExerciseDropdown');
+
+                    groupSelect.innerHTML = '<option value="">Select Group</option>';
+                    groupSelect.disabled = !teamId;
+
+                    athleteSelect.innerHTML = '<option value="">Select Athlete</option>';
+                    athleteSelect.disabled = !teamId; // Enable athlete dropdown when team is selected
+
+                    exerciseSelect.innerHTML = '<option value="">Select Exercise</option>';
+                    exerciseSelect.disabled = true;
+
+                    // Hide comparison cards if team is deselected
+                    if (!teamId) {
+                        document.getElementById('comparisonCardsContainer').style.display = 'none';
+                        document.getElementById('missedSessionsCard').style.display = 'none';
+                        document.getElementById('exerciseHistoryCard').style.display = 'none';
+                        document.getElementById('exerciseStatsCard').style.display = 'none';
+                    }
+
+                    loadChartAndExercises();
+
+                    if (teamId) {
+                        // Load groups for the selected team
+                        fetch('@Url.Action("GetGroupsByTeam", "ProgressDashboard")?teamId=' + teamId)
+                            .then(r => r.json())
+                            .then(data => {
+                                groupSelect.innerHTML = '<option value="">Select Group</option>';
+                                data.forEach(g => {
+                                    var o = document.createElement('option');
+                                    o.value = g.id;
+                                    o.textContent = g.name;
+                                    groupSelect.appendChild(o);
+                                });
+                                groupSelect.disabled = false;
+                            })
+                            .catch(error => {
+                                console.error('Error loading groups:', error);
+                            });
+
+                        // Load all athletes for the selected team
+                        fetch('@Url.Action("GetMembersByTeam", "ProgressDashboard")?teamId=' + teamId)
+                            .then(r => r.json())
+                            .then(data => {
+                                athleteSelect.innerHTML = '<option value="">Select Athlete</option>';
+                                data.forEach(a => {
+                                    var o = document.createElement('option');
+                                    o.value = a.userId;
+                                    o.textContent = a.user;
+                                    athleteSelect.appendChild(o);
+                                });
+                                athleteSelect.disabled = false;
+                            })
+                            .catch(error => {
+                                console.error('Error loading athletes:', error);
+                            });
+                    }
+                });
+
+                // Group dropdown now filters athletes based on the selected group
+                document.getElementById('GroupSelect').addEventListener('change', function () {
+                    var teamId = document.getElementById('TeamSelect').value;
+                    var groupId = this.value;
+                    var athleteSelect = document.getElementById('AthleteSelect');
+                    var exerciseSelect = document.getElementById('ExerciseDropdown');
+
+                    // Reset exercise dropdown
+                    exerciseSelect.innerHTML = '<option value="">Select Exercise</option>';
+                    exerciseSelect.disabled = true;
+
+                    // Reset athlete dropdown for re-population
+                    athleteSelect.innerHTML = '<option value="">Select Athlete</option>';
+
+                    if (groupId) {
+                        // If a group is selected, fetch athletes for that specific group
+                        fetch(`@Url.Action("GetMembersByGroup", "ProgressDashboard")?groupId=${groupId}`)
+                            .then(r => r.json())
+                            .then(data => {
+                                athleteSelect.innerHTML = '<option value="">Select Athlete</option>';
+                                data.forEach(a => {
+                                    var o = document.createElement('option');
+                                    o.value = a.userId;
+                                    o.textContent = a.user;
+                                    athleteSelect.appendChild(o);
+                                });
+                                athleteSelect.disabled = false;
+                            })
+                            .catch(error => {
+                                console.error('Error loading athletes for group:', error);
+                                athleteSelect.disabled = true;
+                            });
+                    } else if (teamId) {
+                        // If no group is selected but a team is, show all athletes in the team
+                        fetch(`@Url.Action("GetMembersByTeam", "ProgressDashboard")?teamId=${teamId}`)
+                            .then(r => r.json())
+                            .then(data => {
+                                athleteSelect.innerHTML = '<option value="">Select Athlete</option>';
+                                data.forEach(a => {
+                                    var o = document.createElement('option');
+                                    o.value = a.userId;
+                                    o.textContent = a.user;
+                                    athleteSelect.appendChild(o);
+                                });
+                                athleteSelect.disabled = false;
+                            })
+                            .catch(error => {
+                                console.error('Error loading athletes for team:', error);
+                                athleteSelect.disabled = true;
+                            });
+                    } else {
+                        // If neither team nor group is selected, disable athlete dropdown
+                        athleteSelect.disabled = true;
+                    }
+
+                    // Update the chart and related data
+                    loadChartAndExercises();
+                });
+
+                // Load chart and exercises when athlete or exercise changes
+                document.getElementById('AthleteSelect').addEventListener('change', function () {
+                    var exerciseSelect = document.getElementById('ExerciseDropdown');
+                    exerciseSelect.innerHTML = '<option value="">Select Exercise</option>';
+                    exerciseSelect.disabled = false;
+                    loadChartAndExercises();
+
+                    // Hide comparison cards and history if no athlete is selected
+                    if (!this.value) {
+                        document.getElementById('comparisonCardsContainer').style.display = 'none';
+                        document.getElementById('exerciseHistoryCard').style.display = 'none';
+                        document.getElementById('exerciseStatsCard').style.display = 'none';
+                    }
+                });
+
+                // Update the exercise dropdown change event handler
+                document.getElementById('ExerciseDropdown').addEventListener('change', function() {
+                    var filters = getFilters();
+                    var exerciseName = this.options[this.selectedIndex].text;
+
+                    // Update chart header with exercise name if an exercise is selected
+                    if (this.value) {
+                        document.getElementById('chartExerciseName').textContent = exerciseName;
+                        document.getElementById('chartHeader').style.display = 'flex';
+                    } else {
+                        document.getElementById('chartHeader').style.display = 'none';
+                    }
+
+                    loadChartAndExercises();
+
+                    // Load exercise history and stats when an exercise is selected
+                    if (filters.athleteId && filters.exerciseId) {
+                        // Update exercise name badge
+                        document.getElementById('exerciseNameBadge').textContent = exerciseName;
+
+                        // Load exercise history
+                        loadExerciseHistory(filters.athleteId, filters.exerciseId);
+
+                        // Load exercise statistics
+                        loadExerciseStats();
+                    } else {
+                        document.getElementById('exerciseHistoryCard').style.display = 'none';
+                        document.getElementById('exerciseStatsCard').style.display = 'none';
+                    }
+                });
+
+
+                document.getElementById('StartDate').addEventListener('change', loadChartAndExercises);
+                document.getElementById('EndDate').addEventListener('change', loadChartAndExercises);
+                document.getElementById('PeriodSelect').addEventListener('change', loadChartAndExercises);
+
+                // Function to load exercise history with modern UI, kg labels, and volume calculations
+                function loadExerciseHistory(athleteId, exerciseId) {
+                    fetch(`@Url.Action("GetExerciseHistory", "ProgressDashboard")?athleteId=${athleteId}&exerciseId=${exerciseId}`)
+                        .then(r => r.json())
+                        .then(data => {
+                            console.log("Exercise history data:", data);
+
+                            const historyCard = document.getElementById('exerciseHistoryCard');
+                            const historyContent = document.getElementById('historyContent');
+                            const noHistoryMessage = document.getElementById('noHistoryMessage');
+
+                            // Update exercise name badge
+                            const exerciseSelect = document.getElementById('ExerciseDropdown');
+                            const exerciseName = exerciseSelect.options[exerciseSelect.selectedIndex].text;
+                            document.getElementById('exerciseNameBadge').textContent = exerciseName;
+
+                            // Clear previous content
+                            Array.from(historyContent.children).forEach(child => {
+                                if (child.id !== 'noHistoryMessage') {
+                                    historyContent.removeChild(child);
+                                }
+                            });
+
+                            // Handle error cases
+                            if (data.error || !data.history || data.history.length === 0) {
+                                noHistoryMessage.textContent = data.error ?
+                                    "Error loading exercise history" :
+                                    "No exercise history found for this athlete";
+                                noHistoryMessage.style.display = 'block';
+                                historyCard.style.display = 'block';
+                                return;
+                            }
+
+                            // Hide the no history message
+                            noHistoryMessage.style.display = 'none';
+
+                            // Create an accordion for the grouped history
+                            const accordion = document.createElement('div');
+                            accordion.id = 'historyAccordion';
+                            accordion.className = 'accordion shadow-sm';
+
+                            // Loop through each date group and create a card
+                            data.history.forEach((dateGroup, index) => {
+                                // Calculate total volume for the date
+                                let totalVolume = 0;
+                                dateGroup.sessions.forEach(session => {
+                                    if (session.weight && session.reps) {
+                                        session.volume = session.weight * session.reps;
+                                        totalVolume += session.volume;
+                                    } else {
+                                        session.volume = null;
+                                    }
+                                });
+
+                                // Fix: Use dateGroup.date instead of session.date which may be undefined
+                                const formattedDate = moment(dateGroup.date).format('D MMM YYYY');
+
+                                const cardId = `date-group-${index}`;
+                                const headingId = `heading-${index}`;
+                                const collapseId = `collapse-${index}`;
+
+                                const card = document.createElement('div');
+                                card.className = 'card mb-2 border-0';
+
+                                // Create card header with date and total volume
+                                const cardHeader = document.createElement('div');
+                                cardHeader.className = 'card-header p-2 border-0 bg-light';
+                                cardHeader.id = headingId;
+
+                                const headerButton = document.createElement('button');
+                                headerButton.className = 'btn btn-link btn-block text-left text-decoration-none d-flex justify-content-between align-items-center';
+                                headerButton.type = 'button';
+                                headerButton.setAttribute('data-toggle', 'collapse');
+                                headerButton.setAttribute('data-target', `#${collapseId}`);
+                                headerButton.setAttribute('aria-expanded', index === 0 ? 'true' : 'false');
+                                headerButton.setAttribute('aria-controls', collapseId);
+
+                                // Left side with date
+                                const dateSpan = document.createElement('span');
+                                dateSpan.innerHTML = `<strong>${formattedDate}</strong>`;
+
+                                // Right side with badges
+                                const badgeContainer = document.createElement('div');
+                                badgeContainer.className = 'd-flex align-items-center';
+
+                                // Sets badge
+                                const setBadge = document.createElement('span');
+                                setBadge.className = 'badge badge-primary badge-pill mr-2';
+                                setBadge.textContent = `${dateGroup.sessions.length} sets`;
+
+                                // Volume badge if volume exists
+                                const volumeBadge = document.createElement('span');
+                                if (totalVolume > 0) {
+                                    volumeBadge.className = 'badge badge-success badge-pill';
+                                    volumeBadge.textContent = `Volume: ${Math.round(totalVolume)}`;
+                                }
+
+                                badgeContainer.appendChild(setBadge);
+                                if (totalVolume > 0) {
+                                    badgeContainer.appendChild(volumeBadge);
+                                }
+
+                                headerButton.appendChild(dateSpan);
+                                headerButton.appendChild(badgeContainer);
+
+                                cardHeader.appendChild(headerButton);
+                                card.appendChild(cardHeader);
+
+                                // Create card body (collapse)
+                                const collapse = document.createElement('div');
+                                collapse.id = collapseId;
+                                collapse.className = `collapse ${index === 0 ? 'show' : ''}`;
+                                collapse.setAttribute('aria-labelledby', headingId);
+                                collapse.setAttribute('data-parent', '#historyAccordion');
+
+                                const cardBody = document.createElement('div');
+                                cardBody.className = 'card-body p-0';
+
+                                // Create table for the sessions
+                                const table = document.createElement('table');
+                                table.className = 'table table-sm table-hover mb-0';
+
+                                // Create table header with Volume column
+                                const thead = document.createElement('thead');
+                                thead.className = 'thead-light';
+                                thead.innerHTML = `
+                                    <tr>
+                                        <th class="text-center" width="40">#</th>
+                                        <th>Weight</th>
+                                        <th>Reps</th>
+                                        <th>Volume</th>
+                                        <th>RPE</th>
+                                        <th>Notes</th>
+                                    </tr>
+                                `;
+                                table.appendChild(thead);
+
+                                // Create table body with kg labels and volume calculation
+                                const tbody = document.createElement('tbody');
+                                dateGroup.sessions.forEach((session, sessionIndex) => {
+                                    const row = document.createElement('tr');
+
+                                    // Format weight with kg and volume calculation
+                                    const weightDisplay = session.weight ? `${session.weight}` : '-';
+                                    const volumeDisplay = session.volume ? `${session.volume}` : '-';
+
+                                    row.innerHTML = `
+                                        <td class="text-center font-weight-bold">${sessionIndex + 1}</td>
+                                        <td>${weightDisplay}</td>
+                                        <td>${session.reps || '-'}</td>
+                                        <td>${volumeDisplay}</td>
+                                        <td>${session.rpe || '-'}</td>
+                                        <td>${session.notes || '-'}</td>
+                                    `;
+                                    tbody.appendChild(row);
+                                });
+
+                                table.appendChild(tbody);
+                                cardBody.appendChild(table);
+                                collapse.appendChild(cardBody);
+                                card.appendChild(collapse);
+
+                                accordion.appendChild(card);
+                            });
+
+                            historyContent.appendChild(accordion);
+                            historyCard.style.display = 'block';
+                        })
+                        .catch(error => {
+                            console.error('Error fetching exercise history:', error);
+                            document.getElementById('noHistoryMessage').textContent = "Error loading exercise history";
+                            document.getElementById('noHistoryMessage').style.display = 'block';
+                            document.getElementById('exerciseHistoryCard').style.display = 'block';
+                        });
+                }
+
+
+                // Function to group data by period
+                function groupDataByPeriod(chartData, period, isAthlete = false) {
+                    if (!chartData || chartData.length === 0) return [];
+
+                    console.log("Grouping data by period:", { chartData, period, isAthlete }); // Debug: Log incoming data
+
+                    // Group data by the selected period
+                    const groupedData = {};
+
+                    chartData.forEach(dataPoint => {
+                        // Check if dataPoint has the expected structure
+                        if (!dataPoint.date || dataPoint.averageWeight === undefined) {
+                            console.error("Invalid data point structure:", dataPoint);
+                            return; // Skip this data point
+                        }
+
+                        const date = moment(dataPoint.date);
+                        let groupKey;
+
+                        if (period === 'daily') {
+                            groupKey = date.format('YYYY-MM-DD');
+                        } else if (period === 'weekly') {
+                            // Group by week (using the first day of the week)
+                            groupKey = date.startOf('week').format('YYYY-MM-DD');
+                        } else if (period === 'monthly') {
+                            // Group by month (using the first day of the month)
+                            groupKey = date.startOf('month').format('YYYY-MM-DD');
+                        }
+
+                        if (!groupedData[groupKey]) {
+                            groupedData[groupKey] = {
+                                date: groupKey,
+                                values: [],
+                                totalWeight: 0,
+                                count: 0
+                            };
+                        }
+
+                        groupedData[groupKey].values.push(dataPoint.averageWeight);
+                        groupedData[groupKey].totalWeight += dataPoint.averageWeight;
+                        groupedData[groupKey].count += 1;
+                    });
+
+                    // Calculate the average or max for each group based on whether it's athlete data
+                    const result = Object.values(groupedData).map(group => {
+                        let weightValue;
+
+                        if (isAthlete) {
+                            // For athlete data, use the maximum weight in the period
+                            weightValue = Math.max(...group.values);
+                        } else {
+                            // For team/group data, use the average
+                            weightValue = group.totalWeight / group.count;
+                        }
+
+                        return {
+                            date: group.date,
+                            averageWeight: weightValue
+                        };
+                    });
+
+                    // Sort by date
+                    const sortedResult = result.sort((a, b) => moment(a.date).diff(moment(b.date)));
+                    console.log("Grouped data result:", sortedResult); // Debug: Log the output
+                    return sortedResult;
+                }
+
+                // Function to load and display comparison data
+                function loadComparisonData() {
+                    var filters = getFilters();
+
+                    // Only fetch comparison data if athlete and exercise are selected
+                    if (!filters.athleteId || !filters.exerciseId) {
+                        document.getElementById('comparisonCardsContainer').style.display = 'none';
+                        return;
+                    }
+
+                    fetch(`@Url.Action("GetComparisonData", "ProgressDashboard")?teamId=${filters.teamId || ''}&groupId=${filters.groupId || ''}&athleteId=${filters.athleteId}&exerciseId=${filters.exerciseId}&startDate=${filters.startDate || ''}&endDate=${filters.endDate || ''}`)
+                        .then(r => r.json())
+                        .then(data => {
+                            console.log("Comparison data:", data); // Debug: Log comparison data
+
+                            if (data.error) {
+                                console.error(data.error);
+                                document.getElementById('comparisonCardsContainer').style.display = 'none';
+                                return;
+                            }
+
+                            // Update athlete vs team comparison card
+                            if (data.teamAverage !== null) {
+                                // Update card title and labels to reflect max weight for athlete
+                                const teamCard = document.querySelector('.card-title').closest('.card');
+                                if (teamCard) {
+                                    const cardTitle = teamCard.querySelector('.card-title');
+                                    if (cardTitle && cardTitle.textContent === 'Athlete vs Team') {
+                                        cardTitle.textContent = 'Athlete Max vs Team Avg';
+                                    }
+
+                                    const athleteLabel = teamCard.querySelector('#athleteToTeamComparison p:first-child');
+                                    if (athleteLabel) {
+                                        athleteLabel.textContent = 'Athlete Max Weight:';
+                                    }
+                                }
+
+                                document.getElementById('athleteAverage').textContent = data.athleteAverage;
+                                document.getElementById('teamAverage').textContent = data.teamAverage;
+
+                                // Update progress bar and percentage
+                                var athleteToTeamBar = document.getElementById('athleteToTeamProgress');
+                                var athleteToTeamPercentage = document.getElementById('athleteToTeamPercentage');
+
+                                if (data.athleteToTeamPercentage !== null) {
+                                    // Use absolute value for progress bar width
+                                    const percentage = Math.abs(data.athleteToTeamPercentage);
+                                    const isAbove = data.athleteToTeamPercentage >= 0;
+
+                                    // Set progress bar width and color
+                                    athleteToTeamBar.style.width = Math.min(percentage, 100) + '%';
+                                    athleteToTeamBar.className = isAbove
+                                        ? 'progress-bar bg-success'
+                                        : 'progress-bar bg-danger';
+
+                                    // Display percentage as positive with appropriate above/below text
+                                    athleteToTeamPercentage.textContent = percentage.toFixed(1) + '% ' +
+                                        (isAbove ? 'above' : 'below') + ' team average';
+                                    athleteToTeamPercentage.className = isAbove
+                                        ? 'text-success'
+                                        : 'text-danger';
+                                }
+                            }
+
+                            // Update athlete vs group comparison card
+                            if (data.groupAverage !== null) {
+                                // Update card title and labels to reflect max weight for athlete
+                                const groupCard = document.querySelectorAll('.card-title')[1].closest('.card');
+                                if (groupCard) {
+                                    const cardTitle = groupCard.querySelector('.card-title');
+                                    if (cardTitle && cardTitle.textContent === 'Athlete vs Group') {
+                                        cardTitle.textContent = 'Athlete Max vs Group Avg';
+                                    }
+
+                                    const athleteLabel = groupCard.querySelector('#athleteToGroupComparison p:first-child');
+                                    if (athleteLabel) {
+                                        athleteLabel.textContent = 'Athlete Max Weight:';
+                                    }
+                                }
+
+                                document.getElementById('athleteAverageGroup').textContent = data.athleteAverage;
+                                document.getElementById('groupAverage').textContent = data.groupAverage;
+
+                                // Update progress bar and percentage
+                                var athleteToGroupBar = document.getElementById('athleteToGroupProgress');
+                                var athleteToGroupPercentage = document.getElementById('athleteToGroupPercentage');
+
+                                if (data.athleteToGroupPercentage !== null) {
+                                    // Use absolute value for progress bar width
+                                    const percentage = Math.abs(data.athleteToGroupPercentage);
+                                    const isAbove = data.athleteToGroupPercentage >= 0;
+
+                                    // Set progress bar width and color
+                                    athleteToGroupBar.style.width = Math.min(percentage, 100) + '%';
+                                    athleteToGroupBar.className = isAbove
+                                        ? 'progress-bar bg-success'
+                                        : 'progress-bar bg-danger';
+
+                                    // Display percentage as positive with appropriate above/below text
+                                    athleteToGroupPercentage.textContent = percentage.toFixed(1) + '% ' +
+                                        (isAbove ? 'above' : 'below') + ' group average';
+                                    athleteToGroupPercentage.className = isAbove
+                                        ? 'text-success'
+                                        : 'text-danger';
+                                }
+                            }
+
+                            // Show the comparison cards
+                            document.getElementById('comparisonCardsContainer').style.display = 'flex';
+                        })
+                        .catch(error => {
+                            console.error('Error fetching comparison data:', error);
+                            document.getElementById('comparisonCardsContainer').style.display = 'none';
+                        });
+                }
+
+                // Function to load and display missed sessions data
+                function loadMissedSessionsData() {
+                    var filters = getFilters();
+
+                    // Only show missed sessions if at least a team is selected
+                    if (!filters.teamId) {
+                        document.getElementById('missedSessionsCard').style.display = 'none';
+                        return;
+                    }
+
+                    // Construct the URL with filters
+                    let url = `@Url.Action("GetMissedSessionsData", "ProgressDashboard")?teamId=${filters.teamId}`;
+
+                    if (filters.athleteId) {
+                        url += `&athleteId=${filters.athleteId}`;
+                    } else if (filters.groupId) {
+                        url += `&groupId=${filters.groupId}`;
+                    }
+
+                    if (filters.startDate) url += `&startDate=${filters.startDate}`;
+                    if (filters.endDate) url += `&endDate=${filters.endDate}`;
+
+                    fetch(url)
+                        .then(r => r.json())
+                        .then(data => {
+                            console.log("Missed sessions data:", data); // Debug: Log missed sessions data
+
+                            if (data.error) {
+                                console.error(data.error);
+                                document.getElementById('missedSessionsCard').style.display = 'none';
+                                return;
+                            }
+
+                            // Update the missed sessions card
+                            const missedCount = data.missedCount || 0;
+                            const totalSessions = data.totalSessions || 0;
+                            const completedSessions = Math.max(0, totalSessions - missedCount);
+
+                            // Calculate completion rate as positive percentage of completed sessions
+                            const completionRate = totalSessions > 0 ? Math.round((completedSessions / totalSessions) * 100) : 0;
+
+                            // Update the stats
+                            document.getElementById('missedSessionsCount').textContent = missedCount;
+                            document.getElementById('completionRate').textContent = `${completionRate}%`;
+                            document.getElementById('completionProgressBar').style.width = `${completionRate}%`;
+                            document.getElementById('missedText').textContent = missedCount;
+                            document.getElementById('completedText').textContent = completedSessions;
+
+                            // Change progress bar color based on completion rate
+                            const progressBar = document.getElementById('completionProgressBar');
+                            if (completionRate >= 80) {
+                                progressBar.className = 'progress-bar bg-success';
+                            } else if (completionRate >= 60) {
+                                progressBar.className = 'progress-bar bg-warning';
+                            } else {
+                                progressBar.className = 'progress-bar bg-danger';
+                            }
+
+                            // Update details section
+                            const detailsContainer = document.getElementById('missedSessionsDetails');
+                            const noMissedSessions = document.getElementById('noMissedSessions');
+
+                            if (data.missedSessions && data.missedSessions.length > 0) {
+                                // Clear previous content except for the "no missed sessions" message
+                                Array.from(detailsContainer.children).forEach(child => {
+                                    if (child.id !== 'noMissedSessions') {
+                                        detailsContainer.removeChild(child);
+                                    }
+                                });
+
+                                // Sort missed sessions by date (newest first)
+                                const sortedMissedSessions = [...data.missedSessions].sort((a, b) => {
+                                    return new Date(b.date) - new Date(a.date);
+                                });
+
+                                // Create a table for missed sessions
+                                const table = document.createElement('table');
+                                table.className = 'table table-sm table-striped';
+
+                                // Create table header with Date column
+                                const thead = document.createElement('thead');
+                                thead.innerHTML = `
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Program</th>
+                                        ${filters.athleteId ? '' : '<th>Athlete</th>'}
+                                    </tr>
+                                `;
+                                table.appendChild(thead);
+
+                                // Create table body
+                                const tbody = document.createElement('tbody');
+                                sortedMissedSessions.forEach(session => {
+                                    // Format the date nicely for display
+                                    const formattedDate = moment(session.date).format('D MMM YYYY');
+
+                                    const row = document.createElement('tr');
+                                    row.innerHTML = `
+                                        <td>${formattedDate}</td>
+                                        <td>${session.programName}</td>
+                                        ${filters.athleteId ? '' : `<td>${session.athleteName}</td>`}
+                                    `;
+                                    tbody.appendChild(row);
+                                });
+                                table.appendChild(tbody);
+
+                                detailsContainer.appendChild(table);
+                                noMissedSessions.style.display = 'none';
+                            } else {
+                                noMissedSessions.style.display = 'block';
+                                // Clear previous content except for the "no missed sessions" message
+                                Array.from(detailsContainer.children).forEach(child => {
+                                    if (child.id !== 'noMissedSessions') {
+                                        detailsContainer.removeChild(child);
+                                    }
+                                });
+                            }
+
+                            // Show the card
+                            document.getElementById('missedSessionsCard').style.display = 'block';
+                        })
+                        .catch(error => {
+                            console.error('Error fetching missed sessions data:', error);
+                            document.getElementById('missedSessionsCard').style.display = 'none';
+                        });
+                }
+
+                // Load chart and exercises
+                function loadChartAndExercises() {
+                    var filters = getFilters();
+                    console.log("Loading chart with filters:", filters); // Debug: Log current filters
+
+                    // Check if any filter is selected
+                    const hasFilters = filters.teamId || filters.groupId;
+
+                    // Hide chart header initially
+                    document.getElementById('chartHeader').style.display = 'none';
+
+                    // If no filters are selected, just update the UI to show no data
+                    if (!hasFilters) {
+                        var container = document.getElementById('progressChartContainer');
+                        container.innerHTML = '<div class="text-center p-5 text-muted">Select a team or group to display chart data</div>';
+
+                        // Hide comparison and missed sessions cards
+                        document.getElementById('comparisonCardsContainer').style.display = 'none';
+                        document.getElementById('missedSessionsCard').style.display = 'none';
+                        document.getElementById('exerciseHistoryCard').style.display = 'none';
+                        document.getElementById('exerciseStatsCard').style.display = 'none';
+
+                        // Disable exercise dropdown
+                        var exerciseSelect = document.getElementById('ExerciseDropdown');
+                        exerciseSelect.innerHTML = '<option value="">Select Exercise</option>';
+                        exerciseSelect.disabled = true;
+
+                        return;
+                    }
+
+                    // First API call to get both team data and exercises
+                    fetch(`@Url.Action("GetProgressionData", "ProgressDashboard")?teamId=${filters.teamId || ''}&groupId=${filters.groupId || ''}&exerciseId=${filters.exerciseId || ''}&startDate=${filters.startDate || ''}&endDate=${filters.endDate || ''}`)
+                        .then(r => r.json())
+                        .then(teamData => {
+                            console.log("Team data received:", teamData); // Debug: Log team data
+
+                            // Populate exercise dropdown
+                            var exerciseSelect = document.getElementById('ExerciseDropdown');
+                            if (!filters.exerciseId) {
+                                exerciseSelect.innerHTML = '<option value="">Select Exercise</option>';
+                                teamData.exercises.forEach(e => {
+                                    var o = document.createElement('option');
+                                    o.value = e.id;
+                                    o.textContent = e.name;
+                                    exerciseSelect.appendChild(o);
+                                });
+                                exerciseSelect.disabled = teamData.exercises.length === 0;
+
+                                // If no exercise is selected, show a placeholder message
+                                if (!filters.exerciseId) {
+                                    var container = document.getElementById('progressChartContainer');
+                                    container.innerHTML = '<div class="text-center p-5 text-muted">Select an exercise to view the chart</div>';
+                                    return;
+                                }
+                            }
+
+                            // If exercise is selected, update chart header with exercise name
+                            if (filters.exerciseId) {
+                                const exerciseName = exerciseSelect.options[exerciseSelect.selectedIndex].text;
+                                document.getElementById('chartExerciseName').textContent = exerciseName;
+                                document.getElementById('chartHeader').style.display = 'flex';
+                            }
+
+                            // If athlete is selected, make a second call to get athlete-specific data
+                            if (filters.athleteId) {
+                                // Key fix: Make sure to include exerciseId in the athlete API call
+                                const athleteUrl = `@Url.Action("GetProgressionData", "ProgressDashboard")?athleteId=${filters.athleteId}${filters.exerciseId ? `&exerciseId=${filters.exerciseId}` : ''}&startDate=${filters.startDate || ''}&endDate=${filters.endDate || ''}`;
+
+                                console.log("Fetching athlete data with URL:", athleteUrl); // Debug: Log the URL
+
+                                fetch(athleteUrl)
+                                    .then(r => r.json())
+                                    .then(athleteData => {
+                                        console.log("Athlete data received:", athleteData); // Debug: Log athlete data
+
+                                        // Only render chart if exercise is selected
+                                        if (filters.exerciseId) {
+                                            // Render chart with both datasets
+                                            renderChartWithTwoDatasets(teamData.chartData, athleteData.chartData, filters);
+                                        }
+
+                                        // Load comparison data
+                                        loadComparisonData();
+
+                                        // Load missed sessions data
+                                        loadMissedSessionsData();
+
+                                        // Load exercise history and stats if both athlete and exercise are selected
+                                        if (filters.athleteId && filters.exerciseId) {
+                                            loadExerciseHistory(filters.athleteId, filters.exerciseId);
+                                            loadExerciseStats();
+                                        } else {
+                                            document.getElementById('exerciseHistoryCard').style.display = 'none';
+                                            document.getElementById('exerciseStatsCard').style.display = 'none';
+                                        }
+                                    })
+                                    .catch(error => {
+                                        console.error('Error loading athlete data:', error);
+                                        // Still render with team data even if athlete data fails
+                                        if (filters.exerciseId) {
+                                            renderChartWithTwoDatasets(teamData.chartData, [], filters);
+                                        }
+                                        loadComparisonData();
+                                        loadMissedSessionsData();
+                                    });
+                            } else {
+                                // Just use team/group data for single line chart
+                                if (filters.exerciseId) {
+                                    renderChart(teamData.chartData);
+                                }
+
+                                // Load comparison data if athlete is selected
+                                loadComparisonData();
+
+                                // Load missed sessions data
+                                loadMissedSessionsData();
+
+                                // Hide exercise history if no athlete is selected
+                                document.getElementById('exerciseHistoryCard').style.display = 'none';
+                                document.getElementById('exerciseStatsCard').style.display = 'none';
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error loading chart data:', error);
+                            document.getElementById('progressChartContainer').innerHTML =
+                                '<div class="text-center p-5 text-danger">Error loading chart data</div>';
+                        });
+                }
+
+
+                // Chart.js rendering for single dataset (team/group only)
+                var chartInstance = null;
+                function renderChart(chartData) {
+                    var ctx = document.getElementById('progressChart');
+                    var container = document.getElementById('progressChartContainer');
+
+                    console.log("Rendering single dataset chart:", chartData); // Debug: Log chart data
+
+                    // If there's no chart data, show a message
+                    if (!chartData || chartData.length === 0) {
+                        if (chartInstance) {
+                            chartInstance.destroy();
+                            chartInstance = null;
+                        }
+                        container.innerHTML = '<div class="text-center p-5 text-muted">No data available for the selected filters</div>';
+                        return;
+                    }
+
+                    // Create canvas if it doesn't exist
+                    if (!ctx) {
+                        container.innerHTML = '<canvas id="progressChart"></canvas>';
+                        ctx = document.getElementById('progressChart');
+                    }
+
+                    // Get the current period filter
+                    const period = document.getElementById('PeriodSelect').value || 'weekly';
+
+                    // Group data by period
+                    const groupedData = groupDataByPeriod(chartData, period, false); // false = not athlete data
+
+                    // Format date labels based on period
+                    const formatLabel = (dateString) => {
+                        const date = moment(dateString);
+                        if (period === 'daily') {
+                            return date.format('D MMM YYYY');
+                        } else if (period === 'weekly') {
+                            return `Week ${date.week()}, ${date.format('YYYY')}`;
+                        } else if (period === 'monthly') {
+                            return date.format('MMM YYYY');
+                        }
+                    };
+
+                    if (chartInstance) chartInstance.destroy();
+                    chartInstance = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: groupedData.map(d => formatLabel(d.date)),
+                            datasets: [{
+                                label: 'Average Weight Used',
+                                data: groupedData.map(d => d.averageWeight),
+                                backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                                borderColor: 'rgba(54, 162, 235, 1)',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                legend: { display: true },
+                                tooltip: {
+                                    callbacks: {
+                                        title: function(tooltipItems) {
+                                            return formatLabel(groupedData[tooltipItems[0].dataIndex].date);
+                                        },
+                                        label: function(context) {
+                                            return `Weight: ${context.raw.toFixed(1)}`;
+                                        }
+                                    }
+                                }
+                            },
+                            scales: {
+                                x: {
+                                    title: { display: true, text: period.charAt(0).toUpperCase() + period.slice(1) }
+                                },
+                                y: {
+                                    title: { display: true, text: 'Weight' }
+                                }
+                            }
+                        }
+                    });
+                }
+
+                // Chart.js rendering with two datasets (team/group and athlete)
+                function renderChartWithTwoDatasets(teamData, athleteData, filters) {
+                    var ctx = document.getElementById('progressChart');
+                    var container = document.getElementById('progressChartContainer');
+
+                    console.log("Rendering dual dataset chart:", { teamData, athleteData, filters }); // Debug: Log chart data
+
+                    // If there's no data, show a message
+                    if ((!teamData || teamData.length === 0) && (!athleteData || athleteData.length === 0)) {
+                        if (chartInstance) {
+                            chartInstance.destroy();
+                            chartInstance = null;
+                        }
+                        container.innerHTML = '<div class="text-center p-5 text-muted">No data available for the selected filters</div>';
+                        return;
+                    }
+
+                    // Create canvas if it doesn't exist
+                    if (!ctx) {
+                        container.innerHTML = '<canvas id="progressChart"></canvas>';
+                        ctx = document.getElementById('progressChart');
+                    }
+
+                    // Get the current period filter
+                    const period = document.getElementById('PeriodSelect').value || 'weekly';
+
+                    // Group data by period for both datasets - athlete data uses MAX instead of average
+                    const groupedTeamData = teamData && teamData.length > 0 ? groupDataByPeriod(teamData, period, false) : [];
+                    const groupedAthleteData = athleteData && athleteData.length > 0 ? groupDataByPeriod(athleteData, period, true) : [];
+
+                    // Get all unique dates from both datasets
+                    let allDates = [];
+                    if (groupedTeamData.length > 0) {
+                        allDates = [...allDates, ...groupedTeamData.map(d => d.date)];
+                    }
+                    if (groupedAthleteData.length > 0) {
+                        allDates = [...allDates, ...groupedAthleteData.map(d => d.date)];
+                    }
+
+                    // Remove duplicates and sort dates
+                    const uniqueDates = [...new Set(allDates)].sort((a, b) => moment(a).diff(moment(b)));
+
+                    // Create a unified dataset structure with all dates
+                    const teamDataMap = {};
+                    const athleteDataMap = {};
+
+                    // Initialize maps with null values for all dates
+                    uniqueDates.forEach(date => {
+                        teamDataMap[date] = null;
+                        athleteDataMap[date] = null;
+                    });
+
+                    // Fill in actual values
+                    groupedTeamData.forEach(d => {
+                        teamDataMap[d.date] = d.averageWeight;
+                    });
+
+                    groupedAthleteData.forEach(d => {
+                        athleteDataMap[d.date] = d.averageWeight; // This now contains the max weight
+                    });
+
+                    // Prepare datasets for the chart
+                    const datasets = [];
+
+                    // Add team/group dataset
+                    if (teamData && teamData.length > 0) {
+                        // Extract data points and ensure team data extends to match athlete data
+                        const teamDataPoints = uniqueDates.map(date => teamDataMap[date]);
+
+                        // Fill null values with interpolated data to make the line continuous
+                        // This ensures the team/group line extends fully across the chart
+                        let lastValidIndex = -1;
+                        for (let i = 0; i < teamDataPoints.length; i++) {
+                            if (teamDataPoints[i] !== null) {
+                                // If we have previous nulls to fill
+                                if (lastValidIndex !== -1 && i - lastValidIndex > 1) {
+                                    const startValue = teamDataPoints[lastValidIndex];
+                                    const endValue = teamDataPoints[i];
+                                    const steps = i - lastValidIndex;
+
+                                    // Linear interpolation
+                                    for (let j = lastValidIndex + 1; j < i; j++) {
+                                        const ratio = (j - lastValidIndex) / steps;
+                                        teamDataPoints[j] = startValue + (endValue - startValue) * ratio;
+                                    }
+                                }
+                                lastValidIndex = i;
+                            }
+                        }
+
+                        // Handle trailing nulls if we have at least one valid data point
+                        if (lastValidIndex !== -1 && lastValidIndex < teamDataPoints.length - 1) {
+                            const lastValue = teamDataPoints[lastValidIndex];
+                            for (let i = lastValidIndex + 1; i < teamDataPoints.length; i++) {
+                                teamDataPoints[i] = lastValue;
+                            }
+                        }
+
+                        datasets.push({
+                            type: 'bar', // <-- Make this a bar graph
+                            label: filters.groupId ? 'Group Average' : 'Team Average',
+                            data: teamDataPoints,
+                            backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            borderWidth: 1,
+                            // No tension for bar
+                            fill: false,
+                            spanGaps: true
+                        });
+                    }
+
+                    // Add athlete dataset
+                    if (athleteData && athleteData.length > 0) {
+                        datasets.push({
+                            type: 'line', // <-- Explicitly set as line
+                            label: 'Athlete (Maximum Weight)',
+                            data: uniqueDates.map(date => athleteDataMap[date]),
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                            fill: false,
+                            tension: 0,
+                            spanGaps: true
+                        });
+                    }
+
+                    console.log("Chart setup:", { uniqueDates, datasets }); // Debug: Log chart setup
+
+                    // Format date labels based on period
+                    const formatLabel = (dateString) => {
+                        const date = moment(dateString);
+                        if (period === 'daily') {
+                            return date.format('D MMM YYYY');
+                        } else if (period === 'weekly') {
+                            return `Week ${date.week()}, ${date.format('YYYY')}`;
+                        } else if (period === 'monthly') {
+                            return date.format('MMM YYYY');
+                        }
+                    };
+
+                    if (chartInstance) chartInstance.destroy();
+                    chartInstance = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: uniqueDates.map(d => formatLabel(d)),
+                            datasets: datasets
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                legend: { display: true },
+                                tooltip: {
+                                    callbacks: {
+                                        title: function(tooltipItems) {
+                                            return formatLabel(uniqueDates[tooltipItems[0].dataIndex]);
+                                        },
+                                        label: function(context) {
+                                            return `Weight: ${context.raw.toFixed(1)}`;
+                                        }
+                                    }
+                                }
+                            },
+                            scales: {
+                                x: {
+                                    title: { display: true, text: period.charAt(0).toUpperCase() + period.slice(1) }
+                                },
+                                y: {
+                                    title: { display: true, text: 'Weight' },
+                                    beginAtZero: false
+                                }
+                            }
+                        }
+                    });
+                }
+
+                // Initialize date range filter
+                $(document).ready(function() {
+                    console.log("Document ready"); // Debug: Confirm document ready event
+
+                    // Set default date range (last 2 months)
+                    setDateRange('last2months');
+
+                    // Handle date range dropdown clicks
+                    $('.date-range-dropdown .dropdown-item').on('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const range = $(this).attr('data-range');
+
+                        // Toggle active class
+                        $('.date-range-dropdown .dropdown-item').removeClass('active');
+                        $('.date-range-dropdown .dropdown-item').each(function() {
+                            $(this).html($(this).html().replace(' <i class="fas fa-check"></i>', ''));
+                        });
+
+                        $(this).addClass('active');
+                        $(this).append(' <i class="fas fa-check"></i>');
+
+                        if (range !== 'custom') {
+                            $('#customDateInputs').hide();
+                            setDateRange(range);
+                            $('.dropdown-menu').removeClass('show');
+                        } else {
+                            $('#customDateInputs').show();
+                        }
+                    });
+
+                    // Handle custom date apply button
+                    $('#applyCustomDates').on('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+
+                        const startDate = $('#customStartDate').val();
+                        const endDate = $('#customEndDate').val();
+
+                        if (startDate && endDate) {
+                            const startFormatted = moment(startDate).format('D MMM YYYY');
+                            const endFormatted = moment(endDate).format('D MMM YYYY');
+                            $('#dateRangeDisplay').text(`${startFormatted} - ${endFormatted}`);
+
+                            // Set hidden input values
+                            $('#StartDate').val(startDate);
+                            $('#EndDate').val(endDate);
+
+                            // Hide dropdown and update chart
+                            $('.dropdown-menu').removeClass('show');
+                            loadChartAndExercises();
+                        } else {
+                            alert('Please select both start and end dates');
+                        }
+                    });
+
+                    // NEW CODE: Sync the chart header period selector with the sidebar one
+                    document.getElementById('chartPeriodSelect').addEventListener('change', function() {
+                        document.getElementById('PeriodSelect').value = this.value;
+                        loadChartAndExercises();
+                    });
+
+                    // NEW CODE: When sidebar period changes, update chart header period
+                    document.getElementById('PeriodSelect').addEventListener('change', function() {
+                        document.getElementById('chartPeriodSelect').value = this.value;
+                    });
+
+                    // NEW CODE: Handle date range dropdown clicks for the chart header
+                    $('.chart-header-filters .dropdown-item').on('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const range = $(this).attr('data-range');
+
+                        // Toggle active class for chart header
+                        $('.chart-header-filters .dropdown-item').removeClass('active');
+                        $('.chart-header-filters .dropdown-item').each(function() {
+                            $(this).html($(this).html().replace(' <i class="fas fa-check"></i>', ''));
+                        });
+
+                        $(this).addClass('active');
+                        $(this).append(' <i class="fas fa-check"></i>');
+
+                        // Also update sidebar dropdown UI
+                        $(`#dateRangeDisplay`).parent().find(`.dropdown-item[data-range="${range}"]`).click();
+
+                        if (range !== 'custom') {
+                            $('#chartCustomDateInputs').hide();
+                            setDateRange(range);
+                            $('.dropdown-menu').removeClass('show');
+                        } else {
+                            $('#chartCustomDateInputs').show();
+                        }
+                    });
+
+                    // NEW CODE: Handle custom date apply button for chart header
+                    $('#chartApplyCustomDates').on('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+
+                        const startDate = $('#chartCustomStartDate').val();
+                        const endDate = $('#chartCustomEndDate').val();
+
+                        if (startDate && endDate) {
+                            const startFormatted = moment(startDate).format('D MMM YYYY');
+                            const endFormatted = moment(endDate).format('D MMM YYYY');
+
+                            // Update both displays
+                            $('#dateRangeDisplay').text(`${startFormatted} - ${endFormatted}`);
+                            $('#chartDateRangeDisplay').text(`${startFormatted} - ${endFormatted}`);
+
+                            // Also sync with the other custom fields
+                            $('#customStartDate').val(startDate);
+                            $('#customEndDate').val(endDate);
+
+                            // Set hidden input values
+                            $('#StartDate').val(startDate);
+                            $('#EndDate').val(endDate);
+
+                            // Hide dropdown and update chart
+                            $('.dropdown-menu').removeClass('show');
+                            loadChartAndExercises();
+                        } else {
+                            alert('Please select both start and end dates');
+                        }
+                    });
+
+                    // NEW CODE: Override the original setDateRange function to update both displays
+                    const originalSetDateRange = setDateRange;
+                    setDateRange = function(range) {
+                        const today = moment();
+                        let startDate, endDate, displayText;
+
+                        switch(range) {
+                            case 'last7days':
+                                startDate = today.clone().subtract(7, 'days');
+                                endDate = today;
+                                displayText = 'Last 7 days';
+                                break;
+                            case 'last2weeks':
+                                startDate = today.clone().subtract(14, 'days');
+                                endDate = today;
+                                displayText = 'Last 2 weeks';
+                                break;
+                            case 'last4weeks':
+                                startDate = today.clone().subtract(28, 'days');
+                                endDate = today;
+                                displayText = 'Last 4 weeks';
+                                break;
+                            case 'last2months':
+                                startDate = today.clone().subtract(2, 'months');
+                                endDate = today;
+                                displayText = 'Last 2 months';
+                                break;
+                            case 'last3months':
+                                startDate = today.clone().subtract(3, 'months');
+                                endDate = today;
+                                displayText = 'Last 3 months';
+                                break;
+                            case 'last6months':
+                                startDate = today.clone().subtract(6, 'months');
+                                endDate = today;
+                                displayText = 'Last 6 months';
+                                break;
+                            case 'last12months':
+                                startDate = today.clone().subtract(12, 'months');
+                                endDate = today;
+                                displayText = 'Last 12 months';
+                                break;
+                            default:
+                                startDate = today.clone().subtract(2, 'months');
+                                endDate = today;
+                                displayText = 'Last 2 months';
+                        }
+
+                        // Update both display texts
+                        $('#dateRangeDisplay').text(displayText);
+                        $('#chartDateRangeDisplay').text(displayText);
+
+                        // Set hidden input values
+                        $('#StartDate').val(startDate.format('YYYY-MM-DD'));
+                        $('#EndDate').val(endDate.format('YYYY-MM-DD'));
+
+                        // Update chart
+                        loadChartAndExercises();
+                    };
+                });
+
+                // Function to set preset date ranges
+                function setDateRange(range) {
+                    const today = moment();
+                    let startDate, endDate, displayText;
+
+                    switch(range) {
+                        case 'last7days':
+                            startDate = today.clone().subtract(7, 'days');
+                            endDate = today;
+                            displayText = 'Last 7 days';
+                            break;
+                        case 'last2weeks':
+                            startDate = today.clone().subtract(14, 'days');
+                            endDate = today;
+                            displayText = 'Last 2 weeks';
+                            break;
+                        case 'last4weeks':
+                            startDate = today.clone().subtract(28, 'days');
+                            endDate = today;
+                            displayText = 'Last 4 weeks';
+                            break;
+                        case 'last2months':
+                            startDate = today.clone().subtract(2, 'months');
+                            endDate = today;
+                            displayText = 'Last 2 months';
+                            break;
+                        case 'last3months':
+                            startDate = today.clone().subtract(3, 'months');
+                            endDate = today;
+                            displayText = 'Last 3 months';
+                            break;
+                        case 'last6months':
+                            startDate = today.clone().subtract(6, 'months');
+                            endDate = today;
+                            displayText = 'Last 6 months';
+                            break;
+                        case 'last12months':
+                            startDate = today.clone().subtract(12, 'months');
+                            endDate = today;
+                            displayText = 'Last 12 months';
+                            break;
+                        default:
+                            startDate = today.clone().subtract(2, 'months');
+                            endDate = today;
+                            displayText = 'Last 2 months';
+                    }
+
+                    // Update display text
+                    $('#dateRangeDisplay').text(displayText);
+
+                    // Set hidden input values
+                    $('#StartDate').val(startDate.format('YYYY-MM-DD'));
+                    $('#EndDate').val(endDate.format('YYYY-MM-DD'));
+
+                    // Update chart
+                    loadChartAndExercises();
+                }
+
+                // Initial load
+                loadChartAndExercises();
+
+                console.log("Full script loaded and executed"); // Debug: Confirm script completed loading
+            </script>
+
+        </div>
+
+
+
+
+       
+            <div class="tab-pane fade  show active" id="tab-content1">
+                <h6 style="margin-bottom:20px;margin-top:10px;">View your upcoming events below</h6>
+                <div class="col-md-12 mx-auto" style="margin-top:20px;">
+                    <div id="scheduler" style="width: 100%; height: 550px;"></div>
+                    <script>
+                        document.addEventListener("DOMContentLoaded", function () {
+                            var scheduleObj = new ej.schedule.Schedule({
+                                height: '550px',
+                                views: ['Day', 'Week', 'Agenda'],
+                                currentView: 'Agenda',
+                                selectedDate: new Date(),
+
+                            });
+                            scheduleObj.appendTo('#scheduler');
+                        });
+                    </script>
+                </div>
+            </div>
+           
+        </div>
+
+        
+
+       @*  <!--Buttons-->
+        <div class="d-flex align-items-right align-items-md-center flex-column flex-md-row pt-2 pb-4">
+            <div class="ms-md-auto py-2 py-md-0">
+                <a href="@Url.Action("WorkoutBuilder", "Programs")" class="btn btn-primary btn-round">
+                    <span>New Program</span>
+                </a>
+                <a href="@Url.Action("TeamBuilder", "Teams")" class="btn btn-primary btn-round">
+                    <i class="fas fa-people-group"></i>
+                    <span>New Team</span>
+                </a>
+                <a href="#" class="btn btn-primary btn-round" data-toggle="modal" data-target="#assignProgramModal">
+
+                    <span>Assign Program</span>
+                </a>
+                <!-- Modal -->
+                <div class="modal fade" id="assignProgramModal" tabindex="-1" role="dialog" aria-labelledby="assignProgramModalLabel" aria-hidden="true">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="assignProgramModalLabel">Assign Program</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <form id="assignProgramForm">
+                                    <div class="form-group">
+                                        <label for="groupSelect">Select Team</label>
+                                        <select class="form-control" id="teamSelect" name="groupId" required>
+                                            <option value="">Select a group</option>
+                                            @foreach (var group in Model.Groups)
+                                            {
+                                                <option value="@group.Id">@group.Name</option>
+                                            }
+                                        </select>
+                                    </div>
+
+                                    <div class="form-group overflow-scroll">
+                                        <label for="programSelect">Select Program</label>
+                                        <div class="checkbox-list">
+                                            <div class="form-check">
+                                                @foreach (var programs in Model.Programs)
+                                                {
+
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="checkbox" name="programIds" id="@programs.Id">
+                                                        <label class="form-check-label" for="@programs.Id">@programs.Name</label>
+                                                    </div>
+
+                                                }
+
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="startDatePicker">Start Date</label>
+                                        <input type="date" class="form-control" id="startDatePicker" name="startDate" required>
+                                    </div>
+
+
+
+
+                                </form>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                <button type="button" class="btn btn-primary" id="assignProgramButton">Assign</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+    
+@*     <script>
+        document.getElementById('groupSelect').addEventListener('change', function () {
+            var selectedGroup = this.value;
+            document.getElementById('groupName').innerText = selectedGroup;
+        });
+
+    </script> *@
+   
+  </body>
+</html>

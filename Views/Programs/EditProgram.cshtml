@@ -1,0 +1,405 @@
+﻿@model Tuple<List<PhasePlayWeb.Models.Entities.Programme>,
+             PhasePlayWeb.Models.Entities.PAExercise,
+             List<PhasePlayWeb.Models.Entities.ProgramAttributes>,
+             List<PhasePlayWeb.Models.Entities.ExerciseSetAttrib>,
+             List<PhasePlayWeb.Models.Entities.Excercises>,
+             List<PhasePlayWeb.Models.Entities.SetAttributes>,
+             List<PhasePlayWeb.Models.Entities.S_RSchema>>
+
+@using PhasePlayWeb.Data;
+@using PhasePlayWeb.Models.Entities;
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Program</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
+    <link href="~/css/stylesheetphaseplay.css" rel="stylesheet" />
+    <link href="https://cdn.syncfusion.com/ej2/20.2.36/material.css" rel="stylesheet">
+    <script src="https://cdn.syncfusion.com/ej2/20.2.36/dist/ej2.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popperjs/core2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h2>Edit Program</h2>
+        <div style="margin-top:20px;padding:10px;">
+            <form method="post" asp-action="SaveEditedProgram">
+                <div id="programs-container">
+                    @for (int i = 0; i < Model.Item1.Count; i++)
+                    {
+                        <div class="program-container">
+                            <div>
+                                <label>New Program Name</label>
+                                <input type="text" class="form-control col-6" name="Programmes[@i].Name" value="@Model.Item1[i].Name" />
+                                <input type="hidden" name="Programmes[@i].id" value="@Model.Item1[i].id" />
+                                <input type="hidden" name="Programmes[@i].Weeks" value="@Model.Item1[i].Weeks" />
+                            </div>
+
+                            <label>Note</label>
+                            @if (Model.Item2 != null)
+                            {
+                                <input type="hidden" name="PAExercises.id" value="@Model.Item2.id" />
+                                <textarea class="form-control col-6" name="PAExercises.AddNote">@Model.Item2.AddNote</textarea>
+                            }
+                            else
+                            {
+                                <textarea class="form-control col-6" name="PAExercises.AddNote">No note available, enter your note here...</textarea>
+                            }
+                            &nbsp;&nbsp;&nbsp;
+                            @{
+                                int index = 0;
+                            }
+                            <!-- This is where your week containers should be displayed horizontally -->
+                            <div style="padding:10px; display: flex; overflow-x: auto;" id="week-card-container">
+                                @for (int j = 0; j < Model.Item3.Count; j++)
+                                {
+                                    <input type="hidden" name="ProgramAttributes[@j].Id" value="@Model.Item3[j].Id" />
+                                    <input type="hidden" name="ProgramAttributes[@j].WeekNumber" value="@Model.Item3[j].WeekNumber" />
+
+                                    <div class="week-container" style="margin: 10px; min-width: 450px; min-height: 500px;">
+                                        <div class="card" style="padding:10px;">
+                                            <h3>Week @Model.Item3[j]?.WeekNumber</h3>
+                                            <table class="table table-bordered program-table">
+                                                <thead>
+                                                    <tr>
+                                                        <th class="col-6">Exercise</th>
+                                                        <th class="col-6">Schema</th>
+                                                        @* <th>Actions</th> *@
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+
+                                                    @foreach (var item in Model.Item5)
+                                                    {
+                                                        var list = Model.Item4.Where(x => x.ExcerciseID == item.Id && x.PerWeek == Model.Item3[j]?.WeekNumber).FirstOrDefault();
+
+                                                        if(list!=null)
+                                                        {
+                                                        <input type="hidden" name="ExerciseSetAttribs[@index].id" value="@list.id" />
+                                                        <input type="hidden" name="ExerciseSetAttribs[@index].PAExerciseID" value="@list.PAExerciseID" />
+                                                        <input type="hidden" name="ExerciseSetAttribs[@index].reps" value="@list.reps" />
+                                                        <input type="hidden" name="ExerciseSetAttribs[@index].RPE" value="@list.RPE" />
+                                                        <input type="hidden" name="ExerciseSetAttribs[@index].RM" value="@list.RM" />
+                                                        <input type="hidden" name="ExerciseSetAttribs[@index].PerWeek" value="@list.PerWeek" />
+                                                        
+                                                        <tr>
+                                                                <td>
+                                                                    <button type="button" class="btn btn-toggle-collapse" data-toggle="collapse" data-target="#exerciseTable-@list.ExcerciseID-@j" aria-expanded="false" aria-controls="exerciseTable-@list.ExcerciseID-@j">
+                                                                        <i class="fas fa-plus" aria-hidden="true"></i>
+                                                                    </button>
+
+                                                                    <!-- Only use this select element for the exercise ID, don't use hidden fields -->
+                                                                    <select class="form-select col-md-8 exercise-select" name="ExerciseSetAttribs[@index].ExcerciseID">
+                                                                        <option value="@list.ExcerciseID">@list.ExcerciseName</option>
+                                                                        @foreach (var exercise in Model.Item5)
+                                                                        {
+                                                                            if (exercise.Id != list.ExcerciseID) // Only add options that are different from the current exercise
+                                                                            {
+                                                                                <option value="@exercise.Id">@exercise.Name</option>
+                                                                            }
+                                                                        }
+                                                                    </select>
+                                                                </td>
+
+
+                                                            <td>
+                                                                <!-- Dropdown to select schema -->
+                                                                <select class="form-select schema-select" data-exercise-id="@list.ExcerciseID" data-week-index="@j" name="ExerciseSetAttribs[@index].SchemaID">
+                                                                    <option value="@list.SchemaID">@list.S_RSchema?.name</option>
+                                                                    @foreach (var schema in Model.Item7.DistinctBy(s => s.id).Where(x => x.SetWeek == Model.Item3[j]?.WeekNumber))
+                                                                    {
+                                                                        <option value="@schema.id">@schema.name</option>
+                                                                    }
+                                                                </select>
+                                                                <input type="hidden" id="selectedSchemaId-@list.ExcerciseID-@j" name="selectedSchemaId-@list.ExcerciseID-@j" value="@list.S_RSchema?.id" />
+                                                            </td>
+                                                        </tr>
+
+                                                        <tr id="exerciseTable-@list.ExcerciseID-@j" class="collapse" data-exercise-id="@list.ExcerciseID" data-week-index="@j">
+                                                            <td colspan="3">
+                                                                <table class="table table-bordered">
+                                                                    <thead>
+                                                                        <tr>
+                                                                            <th>Reps</th>
+                                                                            <th>1RM</th>
+                                                                            <th>RPE</th>
+                                                                        </tr>
+                                                                    </thead>
+                                                                    <tbody>
+                                                                        <!-- Placeholder for dynamically loaded schema attributes -->
+                                                                    </tbody>
+                                                                </table>
+                                                            </td>
+                                                        </tr>
+                                                   
+                                                    }
+                                                        index++;
+                                                    }
+                                                </tbody>
+
+                                                <tr>
+                                                    <td colspan="3">
+                                                        <button type="button" class="btn add-row-btn" onclick="addRow(this)"><i class="fas fa-plus" aria-hidden="true"></i> Add Row</button>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+                <button type="submit" class="btn btn-primary">Save Program</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+                // Add this to your existing script section
+        document.addEventListener('DOMContentLoaded', function() {
+            // Find all exercise select dropdowns
+            const exerciseSelects = document.querySelectorAll('select.exercise-select');
+
+            // Add change event listeners to each select
+            exerciseSelects.forEach(select => {
+                select.addEventListener('change', function() {
+                    // Get the selected exercise ID
+                    const selectedExerciseId = this.value;
+
+                    // Find the closest row
+                    const row = this.closest('tr');
+
+                    // Update any hidden fields if needed
+                    const exerciseIdField = row.querySelector('input[name$=".ExcerciseID"]');
+                    if (exerciseIdField) {
+                        exerciseIdField.value = selectedExerciseId;
+                    }
+
+                    // Also update any data attributes that might be used by other functions
+                    const toggleButton = row.querySelector('.btn-toggle-collapse');
+                    if (toggleButton) {
+                        const oldTarget = toggleButton.getAttribute('data-target');
+                        const newTarget = oldTarget.replace(/exerciseTable-\d+/, `exerciseTable-${selectedExerciseId}`);
+                        toggleButton.setAttribute('data-target', newTarget);
+                    }
+                });
+            });
+        });
+
+        // Wait for the DOM content to be fully loaded before executing the script
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get the container element that holds all the programs
+            const programsContainer = document.getElementById('programs-container');
+            if (programsContainer) {
+                // Add an event listener for change events on the programs container
+                programsContainer.addEventListener('change', function(event) {
+                    // Check if the event target is a schema select dropdown
+                    if (event.target && event.target.matches('select.schema-select')) {
+                        // Handle the schema select change event
+                        handleSchemaSelectChange(event);
+                    }
+                });
+
+                // Add an event listener for click events on the programs container
+                programsContainer.addEventListener('click', function(event) {
+                    // Get the closest button element to the event target
+                    const target = event.target.closest('button');
+                    if (target) {
+                        // Check if the button is a remove row button
+                        if (target.classList.contains('btn-remove-row')) {
+                            // Remove the row
+                            removeRow(target);
+                        } else if (target.classList.contains('btn-toggle-collapse')) {
+                            // Toggle the aria-expanded attribute for collapse buttons
+                            toggleAriaExpanded(target);
+                        }
+                    }
+                });
+            }
+        });
+
+        // Function to toggle the aria-expanded attribute for collapse buttons
+        function toggleAriaExpanded(button) {
+            // Check if the button is currently expanded
+            const isExpanded = button.getAttribute('aria-expanded') === 'true';
+            // Toggle the aria-expanded attribute
+            button.setAttribute('aria-expanded', String(!isExpanded));
+
+            // Get the exercise ID and week index from the button's data attributes
+            const exerciseId = button.getAttribute('data-target').split('-')[1];
+            const weekIndex = button.getAttribute('data-target').split('-')[2];
+
+            // If the table is being expanded, fetch and populate the data
+            if (!isExpanded) {
+                updateExerciseTableId(exerciseId, weekIndex);
+            }
+         }
+
+        // Function to add a new row to the exercise table
+        function addRow(button) {
+            console.log('addRow function called');
+            // Find the closest table and its tbody
+            const table = button.closest('table');
+            const tbody = table.querySelector('tbody');
+
+            // Get the week container to extract week number
+            const weekContainer = button.closest('.week-container');
+            const weekNumber = weekContainer.querySelector('h3').textContent.replace('Week ', '');
+
+            // Get the current index for naming the new elements
+            const currentIndex = document.querySelectorAll('[name^="newExercises"]').length;
+
+            // Create the new row
+            const newRow = document.createElement('tr');
+
+            // Get exercise options for the dropdown
+            const exerciseOptions = Array.from(document.querySelectorAll('.exercise-select option'))
+                .filter(option => option.value)
+                .map(option => ({ value: option.value, text: option.textContent }))
+                .filter((obj, index, self) =>
+                index === self.findIndex((o) => o.value === obj.value));
+
+            // Get schema options for the dropdown (filtered by week)
+            const schemaOptions = Array.from(weekContainer.querySelectorAll('.schema-select option'))
+                .filter(option => option.value)
+                .map(option => ({ value: option.value, text: option.textContent }))
+                .filter((obj, index, self) =>
+                index === self.findIndex((o) => o.value === obj.value));
+
+            // Get PAExerciseID
+            const PAExerciseID = document.querySelector('input[name="PAExercises.id"]')?.value || '0';
+
+            // Set the HTML for the new row
+            newRow.innerHTML = `
+                <td>
+                    <button type="button" class="btn btn-toggle-collapse" data-toggle="collapse"
+                        data-target="#exerciseTable-new-${currentIndex}-${weekNumber}" aria-expanded="false"
+                        aria-controls="exerciseTable-new-${currentIndex}-${weekNumber}">
+                        <i class="fas fa-plus" aria-hidden="true"></i>
+                    </button>
+                    <select class="form-select col-md-8 exercise-select" name="newExercises[${currentIndex}].ExcerciseID">
+                        <option value="">Select Exercise</option>
+                        ${exerciseOptions.map(opt => `<option value="${opt.value}">${opt.text}</option>`).join('')}
+                    </select>
+                    <input type="hidden" name="newExercises[${currentIndex}].id" value="0" />
+                    <input type="hidden" name="newExercises[${currentIndex}].PerWeek" value="${weekNumber}" />
+                    <input type="hidden" name="newExercises[${currentIndex}].PAExerciseID" value="${PAExerciseID}" />
+                </td>
+                <td>
+                    <select class="form-select schema-select" data-exercise-id="new-${currentIndex}"
+                            data-week-index="${weekNumber}" name="newExercises[${currentIndex}].SchemaID">
+                        <option value="">Select Schema</option>
+                        ${schemaOptions.map(opt => `<option value="${opt.value}">${opt.text}</option>`).join('')}
+                    </select>
+                    <input type="hidden" id="selectedSchemaId-new-${currentIndex}-${weekNumber}"
+                            name="selectedSchemaId-new-${currentIndex}-${weekNumber}" value="" />
+                </td>
+            `;
+
+            // FIXED: Simply append the rows to the end of the tbody
+            tbody.appendChild(newRow);
+
+            // Log to console for debugging
+            console.log('New row added:', newRow);
+        }
+
+        // Function to update the exercise table based on the selected schema
+        function updateExerciseTableId(exerciseId, weekIndex) {
+            // Get the selected schema ID from the hidden input
+            const selectedSchemaId = document.getElementById(`selectedSchemaId-${exerciseId}-${weekIndex}`).value;
+            console.log(`Selected Schema ID: ${selectedSchemaId}`);
+
+            // Construct the target table ID using exercise ID and week index
+            const targetTableId = `exerciseTable-${exerciseId}-${weekIndex}`;
+            console.log(`Target Table ID: ${targetTableId}`);
+
+            // Get the target table element by ID
+            const targetTable = document.getElementById(targetTableId);
+            if (targetTable) {
+                console.log('Target table found');
+
+                // Fetch schema data from the server using the selected schema ID
+                fetch(`/api/Schema/${selectedSchemaId}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        console.log('Fetched schema data:', data);
+
+                        // Get the tbody element of the target table
+                        const tbody = targetTable.querySelector('tbody');
+                        if (tbody) {
+                            // Clear the existing rows in the tbody
+                            tbody.innerHTML = '';
+                            let index = 0; // Define and initialize the index variable
+
+                            // Iterate over the fetched schema data and create new rows
+                            data.forEach(setAttrib => {
+                                const row = document.createElement('tr');
+                                row.innerHTML = `
+                                    <td>${setAttrib.reps}</td>
+                                    <td>${setAttrib.percentRM}</td>
+                                    <td>${setAttrib.rpe}</td>
+                                `;
+                                // Append the new row to the tbody
+                                tbody.appendChild(row);
+                                index++; // Increment the index for each row
+                            });
+
+                            // Show the target table by adding the 'show' class
+                            targetTable.classList.add('show');
+                        }
+                    })
+                    .catch(error => console.error('Error fetching schema data:', error));
+            } else {
+                console.error('Target table not found');
+            }
+        }
+
+        // Event handler for schema select change
+        function handleSchemaSelectChange(event) {
+            // Get the select element that triggered the event
+            const selectElement = event.target;
+            // Get the exercise ID and week index from the select element's data attributes
+            const exerciseId = selectElement.getAttribute('data-exercise-id');
+            const weekIndex = selectElement.getAttribute('data-week-index');
+            // Update the hidden input value with the selected schema ID
+            const hiddenInput = document.getElementById(`selectedSchemaId-${exerciseId}-${weekIndex}`);
+            if (hiddenInput) {
+                hiddenInput.value = selectElement.value;
+            }
+            // Update the exercise table based on the selected schema
+            updateExerciseTableId(exerciseId, weekIndex);
+        }
+
+        // Function to remove a row
+        function removeRow(button) {
+            // Get the closest row element to the button
+            const row = button.closest('tr');
+            if (row) {
+                // Remove the row from the DOM
+                row.remove();
+            }
+        }
+
+        // Initialize collapse elements using jQuery
+        $(document).ready(function() {
+            $('.collapse').collapse({
+                toggle: false
+            });
+        });
+    </script>
+</body>
+</html>

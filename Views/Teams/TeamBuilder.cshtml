@@ -1,0 +1,147 @@
+﻿@model PhasePlayWeb.Models.Entities.User
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>PhasePlay.io</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="~/css/stylesheetphaseplay.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
+</head>
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="card col-md-10">
+                <div class="card- body border-0" style="padding:20px;">
+                    
+                    <form id="teambuilder" action="/Teams/TeamBuilder" method="post">
+                        <div class="card-title">
+                            <h3>Team Creation</h3>
+                        </div>
+                        <div class="form-group">
+                        <div class="d-flex" style="margin-top:5px;">
+                            <h5>Team Name</h5>
+                            <input type="text" id="Name" name="Name" class="border-1 ml-2 col-8" placeholder="Enter Team Name" />
+                        </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary align-content-end" style="margin-top:5px;">
+                            Create
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+        @* <div class="row">
+            <div class="card-body border-0" style="background-color:white; padding:15px; margin-bottom:30px;border-radius:10px">
+                <!--Buttons-->
+                <div style="padding:15px">
+                    <!--Add Individual Member-->
+                    <form class="form-inline" style="padding-top:5px;display: inline-block;">
+                        <button type="button" class="btn btn-primary" id="addMemberButton">
+                            <i class="fas fa-user-plus" style="color:white" aria-hidden="true"></i> Add Member
+                        </button>
+                    </form>
+                    <!-- Add Member Modal -->
+                    <div class="modal fade" id="addMemberModal" tabindex="-1" role="dialog" aria-labelledby="addMemberModalLabel" aria-hidden="true">
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="addMemberModalLabel">Add Member</h5>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    <div>
+                                        <h6>Name</h6>
+                                        <input type="text" class="form-control" placeholder="Enter Name" />
+                                        <h6>Surname</h6>
+                                        <input type="text" class="form-control" placeholder="Enter Surname" />
+                                        <h6>Email</h6>
+                                        <input type="email" class="form-control" placeholder="Enter Email Address" />
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                    <button type="button" class="btn btn-primary">Add</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!--Upload Excel Spreadsheet-->
+                    <form class="form-inline" style="padding-top:5px;display: inline-block;">
+                        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#uploadModal">
+                            <i class="fas fa-file-excel" style="color:white"></i>Upload CSV
+                        </button>
+                    </form>
+                    <!-- Upload File Modal -->
+                    <div class="modal fade" id="uploadModal" tabindex="-1" role="dialog" aria-labelledby="uploadModalLabel" aria-hidden="true">
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="uploadModalLabel">Upload CSV</h5>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    <form asp-action="UploadFile" asp-controller="Teams" method="post" enctype="multipart/form-data">
+                                        <div class="form-group">
+                                            <label for="file">Choose file</label>
+                                            <input type="file" class="form-control" id="file" name="file" required>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                            <button type="submit" class="btn btn-primary">Upload</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!--View Added Members-->
+                <table id="groups-table" class="display table">
+                    <thead class="thead-light">
+                        <tr>
+                            <th>Name</th>
+                            <th>Surname</th>
+                            <th>Email</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Name</td>
+                            <td>Surname</td>
+                            <td>Email</td>
+                            <td>
+                                <button type="button" class="btn">
+                                    <i class="fas fa-pen" aria-hidden="true"></i>
+                                </button>
+                                <button type="button" class="btn">
+                                    <i class="fas fa-trash" aria-hidden="true"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div> *@
+    
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popperjs/core2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $('#addMemberButton').click(function () {
+                $('#addMemberModal').modal('show');
+            });
+        });
+    </script>
+</body>
+</html>

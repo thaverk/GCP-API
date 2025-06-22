@@ -1,0 +1,355 @@
+﻿@{
+    Layout = null;
+}
+
+<style>
+    body {
+        min-height: 100vh;
+        position: relative;
+        background: #cfe2ff; /* Updated background color */
+        background-size: cover;
+        background-attachment: fixed;
+        background-repeat: no-repeat;
+    }
+
+    .body-overlay {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        background: #000;
+        opacity: 0.15;
+        z-index: 2000;
+        top: 0;
+        left: 0;
+    }
+
+    .container {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+    }
+
+    /*Card Stats Styling*/
+    .card-stats .card-body {
+        padding: 15px !important;
+    }
+
+    .card-stats .card-title {
+        margin-bottom: 0px !important;
+    }
+
+    .card-stats .card-category {
+        margin-top: 0px;
+    }
+
+    .card-stats .col-icon {
+        width: 65px;
+        height: 65px;
+        padding-left: 0;
+        padding-right: 0;
+        margin-left: 15px;
+    }
+
+    .card-stats .icon-big {
+        width: 100%;
+        height: 100%;
+        font-size: 2.2em;
+        min-height: 64px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+        .card-stats .icon-big.icon-black, .card-stats .icon-big.icon-primary, .card-stats .icon-big.icon-secondary, .card-stats .icon-big.icon-success, .card-stats .icon-big.icon-info, .card-stats .icon-big.icon-warning, .card-stats .icon-big.icon-danger {
+            border-radius: 5px;
+        }
+
+            .card-stats .icon-big.icon-black i, .card-stats .icon-big.icon-primary i, .card-stats .icon-big.icon-secondary i, .card-stats .icon-big.icon-success i, .card-stats .icon-big.icon-info i, .card-stats .icon-big.icon-warning i, .card-stats .icon-big.icon-danger i {
+                color: #ffffff !important;
+            }
+
+        .card-stats .icon-big.icon-black {
+            background: #1a2035;
+        }
+
+        .card-stats .icon-big.icon-primary {
+            background: #1572E8;
+        }
+
+        .card-stats .icon-big.icon-secondary {
+            background: #6861CE;
+        }
+
+        .card-stats .icon-big.icon-success {
+            background: #31CE36;
+        }
+
+        .card-stats .icon-big.icon-warning {
+            background: #FFAD46;
+        }
+
+        .card-stats .icon-big.icon-info {
+            background: #48ABF7;
+        }
+
+        .card-stats .icon-big.icon-danger {
+            background: #F25961;
+        }
+
+        .card-stats .icon-big.round {
+            border-radius: 50% !important;
+        }
+
+        .card-stats .icon-big i.fa, .card-stats .icon-big i.fab, .card-stats .icon-big i.fal, .card-stats .icon-big i.far, .card-stats .icon-big i.fas {
+            font-size: 0.8em;
+        }
+
+    .card-stats .col-stats {
+        align-items: center;
+        display: flex;
+        padding-left: 15px;
+    }
+
+
+    /*Card Styling*/
+    .card, .card-light {
+        border-radius: 10px;
+        background-color: #ffffff;
+        margin-bottom: 30px;
+        -webkit-box-shadow: 2px 6px 15px 0px rgba(69, 65, 78, 0.1);
+        -moz-box-shadow: 2px 6px 15px 0px rgba(69, 65, 78, 0.1);
+        box-shadow: 2px 6px 15px 0px rgba(69, 65, 78, 0.1);
+        border: 0px;
+    }
+
+        .card .card-header, .card-light .card-header {
+            padding: 1rem 1.25rem;
+            background-color: transparent;
+            border-bottom: 1px solid #ebecec !important;
+        }
+
+            .card .card-header:first-child, .card-light .card-header:first-child {
+                border-radius: 0px;
+            }
+
+        .card .card-head-row, .card-light .card-head-row {
+            display: flex;
+            align-items: center;
+        }
+
+            .card .card-head-row .card-tools, .card-light .card-head-row .card-tools {
+                margin-left: auto;
+                float: right;
+                padding-left: 15px;
+            }
+
+                .card .card-head-row .card-tools .btn, .card-light .card-head-row .card-tools .btn {
+                    margin-right: 10px;
+                }
+
+                    .card .card-head-row .card-tools .btn:last-child, .card-light .card-head-row .card-tools .btn:last-child {
+                        margin-right: 0px;
+                    }
+
+        .card .separator-solid, .card-light .separator-solid {
+            border-top: 1px solid #ebecec;
+            margin: 15px 0;
+        }
+
+        .card .separator-dashed, .card-light .separator-dashed {
+            border-top: 1px dashed #ebecec;
+            margin: 15px 0;
+        }
+
+        .card .separator-dot, .card-light .separator-dot {
+            border-top: 1px dotted #ebecec;
+            margin: 15px 0;
+        }
+
+        .card .full-width-separator, .card-light .full-width-separator {
+            margin: 15px -20px 15px;
+        }
+
+        .card .b-b1, .card-light .b-b1 {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .card .card-body, .card-light .card-body {
+            padding: 1.25rem;
+        }
+
+        .card .card-footer, .card-light .card-footer {
+            background-color: transparent;
+            line-height: 30px;
+            border-top: 1px solid #ebecec !important;
+            font-size: 13px;
+        }
+
+        .card .pull-in, .card-light .pull-in {
+            margin-left: -1.25rem;
+            margin-right: -1.25rem;
+        }
+
+            .card .pull-in.sparkline-fix, .card-light .pull-in.sparkline-fix {
+                margin-left: -1.35rem;
+                margin-right: -1.35rem;
+                margin-bottom: -3px;
+            }
+
+        .card .chart-as-background, .card-light .chart-as-background {
+            position: absolute;
+            bottom: 0;
+            width: calc(100% + 2px);
+        }
+
+        .card .card-action, .card-light .card-action {
+            padding: 30px;
+            background-color: transparent;
+            line-height: 30px;
+            border-top: 1px solid #ebecec !important;
+            font-size: 1rem;
+        }
+
+        .card .card-footer hr, .card-light .card-footer hr {
+            margin-top: 5px;
+            margin-bottom: 5px;
+        }
+
+        .card .card-footer .legend, .card-light .card-footer .legend {
+            display: inline-block;
+        }
+
+        .card.full-height {
+            height: calc(100% - 30px);
+        }
+
+    .card-space {
+        padding: 0 30px;
+    }
+
+        .card-space > .card-header, .card-space > .card-body, .card-space > .card-footer, .card-space > .card-action {
+            padding-left: 0px !important;
+            padding-right: 0px !important;
+        }
+
+    .card-with-nav .card-header {
+        border-bottom: 0px !important;
+        padding-top: 0px !important;
+        padding-bottom: 0px !important;
+    }
+
+    .card-with-nav .card-body {
+        padding: 15px 25px !important;
+    }
+
+    .card-list {
+        padding: 10px 0;
+    }
+
+        .card-list .item-list {
+            display: flex;
+            flex-direction: row;
+            padding: 10px 0;
+            align-items: center;
+        }
+
+            .card-list .item-list .info-user {
+                flex: 1;
+            }
+
+                .card-list .item-list .info-user .username, .card-list .item-list .info-user a.username {
+                    font-size: 14px;
+                    margin-bottom: 5px;
+                    font-weight: 600;
+                }
+
+                .card-list .item-list .info-user .status {
+                    font-size: 12px;
+                    color: #7d7b7b;
+                }
+
+    .card-title {
+        margin: 0;
+        color: #2A2F5B;
+        font-size: 20px;
+        font-weight: 600;
+        line-height: 1.6;
+    }
+
+        .card-title a, .card-title a:hover, .card-title a:focus {
+            color: #2A2F5B;
+            text-decoration: none;
+        }
+
+    .card-sub {
+        display: block;
+        margin: 5px 0 10px 0;
+        font-size: .9rem;
+        background: #f7f8fa;
+        color: #2A2F5B;
+        padding: 0.85rem 1.5rem;
+        border-radius: 4px;
+        line-height: 1.82;
+    }
+
+    .card-category {
+        margin-top: 8px;
+        font-size: 1rem;
+        color: #8d9498;
+        margin-bottom: 0px;
+        word-break: normal;
+    }
+
+    label {
+        font-size: 1rem;
+        font-weight: 400;
+        color: #8d9498;
+        margin-bottom: 0px;
+    }
+
+    .card-transparent {
+        background: transparent !important;
+        box-shadow: none;
+        border-color: transparent !important;
+    }
+
+    .btn-lg:hover {
+        color: white; /* New text color on hover */
+        background-color: #F7F7F7;
+    }
+
+</style>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
+</head>
+
+<body>
+    <div class="container py-5"> 
+        <h1 class="display-4 font-weight-bold" style="color:dimgray;">PHASEPLAY</h1>
+        <p class="lead text-secondary">WORKOUT AND REHAB PRESCRIPTION APP</p>
+        <a href="@Url.Action("SignIn", "Users")" class="btn btn-lg my-3" style="background-color: dimgray;border-color:dimgray;color:white;">I'm a Admin</a>
+        <br>
+        <a href="#assigned-programs" class="btn btn-lg my-3" style="border-color:dimgray;color:dimgray;">I've been assigned programs</a>
+        <p class="text-muted mt-4">Don't have a PhasePlay Admin account yet? <a href="@Url.Action("SignUp", "Users")" style="color:#0d6efd;">Sign up for free today</a></p>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popperjs/core2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
+
+
+
+
+
+
+

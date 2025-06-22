@@ -1,0 +1,57 @@
+﻿@{
+
+}
+<html>
+<head>
+    <title>Team Management</title>
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css" />
+
+    <!-- DataTables JS -->
+    <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+
+    <!--CSS Files-->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" />
+</head>
+<body>
+    <div class="container">
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="popup-modal" tabindex="-1" role="dialog" aria-labelledby="popup-modal-label" aria-hidden="true">
+
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addMemberModalLabel">Add Member</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="CreateTeamModal" action="/Users/CreateTeamModal" method="post">
+                        <div>
+                            <h6>Enter Team Name</h6>
+                            <input type="text" id="TeamName" name="TeamName" class="form-control" placeholder="Enter Name" required />
+
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary" form="CreateTeamModal">Add</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    @section Scripts {
+        <script>
+            $(document).ready(function () {
+                $('#popup-modal').modal('show');
+            });
+        </script>
+    }
+</body>
+
+
+</html>

@@ -1,0 +1,62 @@
+﻿@model Tuple< List<PhasePlayWeb.Models.Entities.ProgramAttributes>,List<PhasePlayWeb.Models.Entities.Excercises>>
+
+@foreach (var item in Model.Item1)
+{
+   
+    <form asp-action="SaveSet" method="post">
+        <div class="card-body">
+
+            <input type="hidden" name="Id" value="@item.Id" />
+            <input type="hidden" name="ProgramID" value="@item.ProgramID" />
+            <input type="hidden" name="PerWeek" value="@item.WeekNumber" />
+
+            <div class="mb-3">
+                <label class="col-form-label">Name of Set</label>
+                <input type="text" class="form-control" name="name" placeholder="E.g Strength" />
+            </div>
+           
+
+            <div class="mb-3">
+                <label for="exercise1" class="form-label">Exercise 1</label>
+                <select class="form-select" name="Exercise1">
+                    @foreach (var item2 in Model.Item2)
+                    {
+                        <option value="@item2.Id">@item2.Name</option>
+                    }
+                </select>
+            </div>
+            <div class="mb-3">
+                <label for="superSet" class="form-label">Sets</label>
+                <input type="number" class="form-control" name="sets1" placeholder="1">
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label">Number of Reps</label>
+                <input type="number" class="form-control" name="Reps1" placeholder="1">
+            </div>
+            
+            
+            
+            
+            <div class="mb-3">
+                <label for="exercise2" class="form-label">Exercise 2</label>
+                <select class="form-select" name="Exercise2">
+                    @foreach (var item2 in Model.Item2)
+                    {
+                        <option value="@item2.Id">@item2.Name</option>
+                    }
+                </select>
+            </div>
+            <div class="mb-3">
+                <label for="superSet" class="form-label">Sets</label>
+                <input type="number" class="form-control" name="sets2" placeholder="1">
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label">Number of Reps</label>
+                <input type="number" class="form-control" name="Reps2" placeholder="1">
+            </div>
+            <button type="submit" class="btn btn-outline-info">Add</button>
+        </div>
+    </form>
+}

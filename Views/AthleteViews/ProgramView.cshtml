@@ -1,0 +1,571 @@
+﻿@model PhasePlayWeb.Models.ProgramViewViewModel
+@using PhasePlayWeb.Data;
+@inject ApplicationDbContext _context
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Program View</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="~/css/stylesheetphaseplay.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
+    <link href="https://cdn.syncfusion.com/ej2/20.2.36/material.css" rel="stylesheet">
+    <script src="https://cdn.syncfusion.com/ej2/20.2.36/dist/ej2.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+    <style>
+        .container {
+            padding: 0 15px;
+        }
+
+        .card {
+            margin-bottom: 15px;
+        }
+
+        .modal-dialog {
+            max-width: 100%;
+            margin: 0;
+        }
+
+        .modal-content {
+            border-radius: 0;
+        }
+
+        .form-control {
+            width: 100%;
+        }
+        
+        .workout-section {
+            margin-bottom: 30px;
+            border-left: 4px solid #6610f2;
+            padding-left: 15px;
+        }
+        
+        .workout-header {
+            background-color: #f8f9fa;
+            padding: 10px 15px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .exercise-header {
+            background-color: #f1f1f1;
+            padding: 8px 15px;
+            border-radius: 3px;
+            margin: 15px 0 10px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .responsive-iframe {
+            position: relative;
+            padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+            height: 0;
+            overflow: hidden;
+        }
+
+        .responsive-iframe iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: 0;
+        }
+
+        @@media (max-width: 768px) {
+            .d-inline-flex {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .d-inline-flex h1, .d-inline-flex h4 {
+                font-size: 1.5rem;
+            }
+
+            .d-inline-flex button {
+                margin-top: 10px;
+            }
+
+            .table {
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        @if (ViewData["IsSingleWorkout"] != null && (bool)ViewData["IsSingleWorkout"])
+        {
+            <div class="mb-3">
+                <a href="@ViewData["AllWorkoutsLink"]" class="btn btn-outline-primary">
+                    <i class="fas fa-arrow-left"></i> View All Workouts
+                </a>
+            </div>
+    
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i> You're viewing a single workout. Complete this workout to mark it done.
+            </div>
+        }
+        @if (Model != null)
+        {
+            <div>
+                <div class="d-inline-flex" style="justify-content:space-between;padding:10px;">
+                    <h1 class="text-center" style="padding:10px;">Log Workout</h1>
+                    <button type="button" class="btn" style="border-radius:30px;color:#509ee3" data-toggle="modal" data-target="#sessionDetailsModal">
+                        <i class="fas fa-info-circle" aria-hidden="true"></i>
+                    </button>
+
+                    <!-- Modal -->
+                    <div class="modal fade" id="sessionDetailsModal" tabindex="-1" role="dialog" aria-labelledby="sessionDetailsModalLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-sm" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    @{
+                                        var program = _context.Programs.FirstOrDefault(x => x.id == Model.LegacyModel.Item5.ProgramID);
+                                    }
+                                    <h5 class="modal-title" id="sessionDetailsModalLabel">@program?.Name</h5>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="mb-3" style="font:bold">
+                                        <h5>Phase:</h5>
+                                        <h6>@Model.LegacyModel.Item5.name</h6>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <h5>Date Assigned:</h5>
+                                        <h6>@Model.LegacyModel.Item4.DateAssigned.ToString("MM/dd/yyyy")</h6>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <h5>Week:</h5>
+                                        <h6>@Model.LegacyModel.Item4.PerWeek?.ToString()</h6>
+                                    </div>
+
+                                    <h5>Note:</h5>
+                                    <div class="card-body col-12 align-content-center" style="border-color:lightgray;border-radius:10px;">
+                                        @Model.LegacyModel.Item5.AddNote
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <div class="card col-md-12" style="padding:10px;">
+                    @{
+                        var formAction = (Model.IsSingleWorkout) ? 
+                            Url.Action("CompleteWorkout", "AthleteViews") : 
+                            Url.Action("SessionUpdate", "AthleteViews");
+                            
+                        var onSubmitAction = (Model.IsSingleWorkout) ? 
+                            "submitSingleWorkout(event)" : 
+                            "submitAllWorkouts(event)";
+                    }
+
+                    <form id="workoutForm" action="@formAction" method="post">
+                        @for(int workoutIndex = 0; workoutIndex < Model.Workouts.Count; workoutIndex++)
+                        {
+                            var workout = Model.Workouts[workoutIndex];
+                            
+                            <div class="workout-section">
+                                <div class="workout-header">
+                                    <h3>@workout.WorkoutName</h3>
+                                    @if (!string.IsNullOrEmpty(workout.Notes))
+                                    {
+                                        <button type="button" class="btn btn-sm btn-outline-info" data-toggle="collapse" data-target="#workoutNotes-@workoutIndex">
+                                            <i class="fas fa-info-circle"></i> Notes
+                                        </button>
+                                    }
+                                </div>
+                                
+                                @if (!string.IsNullOrEmpty(workout.Notes))
+                                {
+                                    <div class="collapse mb-3" id="workoutNotes-@workoutIndex">
+                                        <div class="card card-body">
+                                            @workout.Notes
+                                        </div>
+                                    </div>
+                                }
+                                
+                                @for(int exerciseIndex = 0; exerciseIndex < workout.Exercises.Count; exerciseIndex++)
+                                {
+                                    var exercise = workout.Exercises[exerciseIndex];
+                                    var name = _context.Excercises.FirstOrDefault(x => x.Id == exercise.ExerciseID);
+                                    
+                                    <div class="exercise-section">
+                                        <div class="exercise-header">
+                                            <h4>@exercise.ExerciseName</h4>
+                                            <button type="button" class="btn btn-sm" style="color:#fff" data-toggle="modal" data-target="#exerciseDetailsModal-@exercise.ExerciseID">
+                                                <i class="fas fa-info-circle" aria-hidden="true"></i>
+                                            </button>
+                                        </div>
+                                        
+                                        <!-- Exercise Modal -->
+                                        <div class="modal fade" id="exerciseDetailsModal-@exercise.ExerciseID" tabindex="-1" role="dialog" aria-labelledby="exerciseDetailsModalLabel-@exercise.ExerciseID" aria-hidden="true">
+                                            <div class="modal-dialog modal-sm" role="document">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h4 class="modal-title" id="exerciseDetailsModalLabel-@exercise.ExerciseID">@exercise.ExerciseName</h4>
+                                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                            <span aria-hidden="true">&times;</span>
+                                                        </button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        <div class="card-body col-12 align-content-center">
+                                                            @if (name != null && !string.IsNullOrEmpty(name.YoutubeURL))
+                                                            {
+                                                                var regex = new System.Text.RegularExpressions.Regex(@"(?:https?://)?(?:www.)?(?:youtube.com/(?:[^/]+/.|(?:v|e(?:mbed)?|watch)(?:\S?v=)|.*[?&]v=)|youtu.be/)([a-zA-Z0-9_-]{11})", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+                                                                var match = regex.Match(name.YoutubeURL);
+
+                                                                if (match.Success)
+                                                                {
+                                                                    var videoId = match.Groups[1].Value;
+                                                                    var embedUrl = $"https://www.youtube.com/embed/{videoId}";
+                                                                    <div class="responsive-iframe">
+                                                                        <iframe src="@embedUrl" frameborder="0" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
+                                                                    </div>
+                                                                }
+                                                                else
+                                                                {
+                                                                    <p>Invalid YouTube URL</p>
+                                                                }
+                                                            }
+                                                            else
+                                                            {
+                                                                <p>No YouTube URL available</p>
+                                                            }
+                                                          
+                                                            &nbsp;&nbsp;&nbsp;&nbsp;
+                                                            <div class="d-flex flex-wrap">
+                                                                @if (name != null)
+                                                                {
+                                                                    <div class="card col-6 col-sm-4 col-md-3 col-lg-2 mb-2 mr-2 responsive-text" style="border-radius:10px;background-color:lightgray;text-align:center;font-weight:bold;color:white">
+                                                                        <h5 class="my-1">@name.PrimaryGroup</h5>
+                                                                    </div>
+                                                                    <div class="card col-6 col-sm-4 col-md-3 col-lg-2 mb-2 responsive-text" style="border-radius:10px;background-color:lightgray;text-align:center;font-weight:bold;color:white">
+                                                                        <h5 class="my-1">@name.SecondaryGroup1</h5>
+                                                                    </div>
+                                                                }
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <table class="display table table-hover">
+                                            <thead class="thead-light">
+                                                <tr>
+                                                    <th>Set</th>
+                                                    <th>Reps</th>
+                                                    <th>Done</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @for (int j = 0; j < exercise.Sets.Count; j++)
+                                                {
+                                                    var ses = exercise.Sets[j];
+                                                    <tr>
+                                                        <td>
+                                                            @(j + 1)<br />
+                                                        </td>
+                                                        <td> 
+                                                            <input type="hidden" name="Sessions[@workoutIndex][@exerciseIndex][@j].GroupSessionID" value="@Model.LegacyModel.Item3"/>
+                                                            <input type="hidden" name="Sessions[@workoutIndex][@exerciseIndex][@j].SessionSetID" value="@ses.SessionSetID"/>
+                                                            <input type="hidden" name="Sessions[@workoutIndex][@exerciseIndex][@j].id" value="@ses.id" />
+                                                            <input type="hidden" name="Sessions[@workoutIndex][@exerciseIndex][@j].UserId" value="@ses.UserId" />
+                                                            <input type="hidden" name="Sessions[@workoutIndex][@exerciseIndex][@j].ExcerciseID" value="@ses.ExcerciseID" />
+                                                            <input type="hidden" name="Sessions[@workoutIndex][@exerciseIndex][@j].ExcerciseName" value="@ses.ExcerciseName" />
+                                                            <input type="hidden" name="Sessions[@workoutIndex][@exerciseIndex][@j].SchemaID" value="@ses.SchemaID" />
+                                                            <input type="hidden" name="Sessions[@workoutIndex][@exerciseIndex][@j].DateAssigned" value="@ses.DateAssigned" />
+                                                            <input type="hidden" name="Sessions[@workoutIndex][@exerciseIndex][@j].ProgramID" value="@ses.ProgramID" />
+                                                            <input type="hidden" name="Sessions[@workoutIndex][@exerciseIndex][@j].PAExerciseID" value="@ses.PAExerciseID" />
+                                                            <input type="hidden" name="Sessions[@workoutIndex][@exerciseIndex][@j].PerWeek" value="@ses.PerWeek" />
+                                                            <input type="hidden" name="Sessions[@workoutIndex][@exerciseIndex][@j].RPE" value="@ses.RPE" />
+                                                            <input type="hidden" name="Sessions[@workoutIndex][@exerciseIndex][@j].RM" value="@ses.RM" />
+                                                            <input type="hidden" name="Sessions[@workoutIndex][@exerciseIndex][@j].Velocity" value="@ses.Velocity" />
+                                                            <input type="hidden" name="Sessions[@workoutIndex][@exerciseIndex][@j].DateCompleted" value="@DateTime.Now" />
+                                                            <input type="hidden" name="Sessions[@workoutIndex][@exerciseIndex][@j].GroupProgrammeId" value="@ses.GroupProgrammeId" />
+                                                            <input type="text" class="col-10 form-control form-control-lg" name="Sessions[@workoutIndex][@exerciseIndex][@j].reps" value="@ses.reps" oninput="storeInputValue(this)" />
+                                                        </td>
+                                                        <td>
+                                                            <input type="text" class="col-10 form-control form-control-lg" name="Sessions[@workoutIndex][@exerciseIndex][@j].WeightUsed" value="@ses.RecommendedWeight" oninput="storeInputValue(this)" />
+                                                            @if (ses.e1RM == null || ses.e1RM == 0)
+                                                            {
+                                                                <span style="font-size: 12px; color: dimgray;">No history yet</span>
+                                                            }
+                                                            else
+                                                            {
+                                                                var round = (int)Math.Round(ses.e1RM.Value);
+                                                                <span style="font-size: 12px; color: dimgray;">e1RM @round</span>
+                                                            }
+                                                        </td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                }
+                            </div>
+                        }
+                        <button type="submit" class="btn btn-primary">Submit</button>
+                    </form>
+                </div>
+            </div>
+        }
+        else
+        {
+            <h1 class="text-center">No Session for Today!</h1>
+        }
+    </div>
+    
+    <script>
+        // Create workout structure for JavaScript code
+        const workoutStructure = @Html.Raw(Json.Serialize(new
+        {
+            workoutCount = Model?.Workouts?.Count ?? 0,
+            exercises = Model?.Workouts?.Select(w => new
+            {
+                exerciseCount = w.Exercises?.Count ?? 0,
+                sets = w.Exercises?.Select(e => e.Sets?.Count ?? 0).ToArray() ?? new int[0]
+            }).ToArray() ?? new object[0]
+        }));
+
+        // Function to store the input value in local storage
+        function storeInputValue(input) {
+            localStorage.setItem(input.name, input.value);
+        }
+
+        // Function to restore input values from local storage
+        function restoreInputValues() {
+            var inputs = document.querySelectorAll('input[name^="Sessions"]');
+            inputs.forEach(function(input) {
+                var storedValue = localStorage.getItem(input.name);
+                if (storedValue) {
+                    input.value = storedValue;
+                }
+            });
+        }
+
+        // Event listener to restore input values when the document is fully loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            restoreInputValues();
+            
+            // Attach the appropriate submit handler
+            const form = document.getElementById('workoutForm');
+            if (form) {
+                form.addEventListener('submit', function(event) {
+                    @if (Model?.IsSingleWorkout == true)
+                    {
+                        @:submitSingleWorkout(event);
+                    }
+                    else
+                    {
+                        @:submitAllWorkouts(event);
+                    }
+                });
+            }
+        });
+
+        // Function for submitting all workouts
+        async function submitAllWorkouts(event) {
+            event.preventDefault();
+            var form = event.target;
+            var formData = new FormData(form);
+
+            // Disable the submit button to prevent multiple submissions
+            var submitButton = form.querySelector('button[type="submit"]');
+            submitButton.disabled = true;
+
+            // Show loading screen
+            var loadingScreen = document.createElement('div');
+            loadingScreen.id = 'loading-screen';
+            loadingScreen.style.position = 'fixed';
+            loadingScreen.style.top = '0';
+            loadingScreen.style.left = '0';
+            loadingScreen.style.width = '100%';
+            loadingScreen.style.height = '100%';
+            loadingScreen.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+            loadingScreen.style.display = 'flex';
+            loadingScreen.style.justifyContent = 'center';
+            loadingScreen.style.alignItems = 'center';
+            loadingScreen.style.zIndex = '9999';
+            loadingScreen.innerHTML = '<div class="spinner-border text-light" role="status"><span class="sr-only">Loading...</span></div>';
+            document.body.appendChild(loadingScreen);
+
+            try {
+                let response = await fetch(form.action, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (response.ok) {
+                    // Clear local storage
+                    localStorage.clear();
+
+                    setTimeout(function() {
+                        window.location.href = '@Url.Action("AthleteDashboard", "AthleteViews")';
+                    }, 1000);
+                } else {
+                    throw new Error('Server returned ' + response.status);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred while submitting the form.');
+                // Re-enable the submit button if there's an error
+                submitButton.disabled = false;
+            } finally {
+                // Hide loading screen
+                try {
+                    if (loadingScreen && loadingScreen.parentNode) {
+                        document.body.removeChild(loadingScreen);
+                    }
+                } catch (e) {
+                    console.error('Error removing loading screen:', e);
+                }
+            }
+        }
+
+        // Function to handle single workout submission
+        async function submitSingleWorkout(event) {
+            event.preventDefault();
+            var form = event.target;
+            
+            // Disable the submit button to prevent multiple submissions
+            var submitButton = form.querySelector('button[type="submit"]');
+            submitButton.disabled = true;
+            
+            // Show loading screen
+            var loadingScreen = document.createElement('div');
+            loadingScreen.id = 'loading-screen';
+            loadingScreen.style.position = 'fixed';
+            loadingScreen.style.top = '0';
+            loadingScreen.style.left = '0';
+            loadingScreen.style.width = '100%';
+            loadingScreen.style.height = '100%';
+            loadingScreen.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+            loadingScreen.style.display = 'flex';
+            loadingScreen.style.justifyContent = 'center';
+            loadingScreen.style.alignItems = 'center';
+            loadingScreen.style.zIndex = '9999';
+            loadingScreen.innerHTML = '<div class="spinner-border text-light" role="status"><span class="sr-only">Loading...</span></div>';
+            document.body.appendChild(loadingScreen);
+            
+            try {
+                // Build the data structure from form inputs
+                const formData = new FormData(form);
+                const workoutSessions = [];
+                
+                // Collect all form elements
+                const formElements = Array.from(form.elements);
+                
+                // Extract data for each exercise group using the workout structure
+                for (let i = 0; i < workoutStructure.workoutCount; i++) {
+                    const exercises = [];
+                    
+                    const workoutData = workoutStructure.exercises[i];
+                    for (let j = 0; j < workoutData.exerciseCount; j++) {
+                        const sets = [];
+                        
+                        for (let k = 0; k < workoutData.sets[j]; k++) {
+                            // Create an object to store session data
+                            const session = {};
+                            
+                            // Find inputs for this specific set
+                            const setInputs = formElements.filter(input => 
+                                input.name && input.name.startsWith(`Sessions[${i}][${j}][${k}]`));
+                            
+                            // Add each input to the session object
+                            setInputs.forEach(input => {
+                                // Get the property name from the input name
+                                const propName = input.name.split('.').pop() || 
+                                    input.name.match(/\[(\w+)\]$/)?.[1];
+                                
+                                if (propName) {
+                                    session[propName] = input.value;
+                                }
+                            });
+                            
+                            sets.push(session);
+                        }
+                        
+                        exercises.push(sets);
+                    }
+                    
+                    workoutSessions.push(exercises);
+                }
+                
+                // Send data via fetch API
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(workoutSessions)
+                });
+                
+                // Check if response is JSON
+                const contentType = response.headers.get('content-type');
+                if (contentType && contentType.includes('application/json')) {
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        // Clear local storage for this workout
+                        localStorage.clear();
+                        
+                        // Show success message
+                        alert('Workout completed successfully!');
+                        
+                        // Redirect based on whether all workouts are completed
+                        if (result.isSessionCompleted) {
+                            window.location.href = '@Url.Action("AthleteDashboard", "AthleteViews")';
+                        } else {
+                            // Go back to view all workouts
+                            window.location.href = '@(ViewData["AllWorkoutsLink"] ?? Url.Action("AthleteDashboard", "AthleteViews"))';
+                        }
+                    } else {
+                        alert('Error: ' + (result.message || 'Unknown error'));
+                        submitButton.disabled = false;
+                    }
+                } else {
+                    // Handle non-JSON response (like redirect)
+                    if (response.ok) {
+                        localStorage.clear();
+                        window.location.href = '@Url.Action("AthleteDashboard", "AthleteViews")';
+                    } else {
+                        throw new Error('Server returned ' + response.status);
+                    }
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred while submitting the form.');
+                submitButton.disabled = false;
+            } finally {
+                // Hide loading screen
+                try {
+                    if (loadingScreen && loadingScreen.parentNode) {
+                        document.body.removeChild(loadingScreen);
+                    }
+                } catch (e) {
+                    console.error('Error removing loading screen:', e);
+                }
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,70 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+
+@model Tuple<List<int>, List<PhasePlayWeb.Models.Entities.ExerciseSetAttrib>>
+@using PhasePlayWeb.Data;
+@inject ApplicationDbContext _context
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>PhasePlay.io</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
+    <link href="~/css/stylesheetphaseplay.css" rel="stylesheet" />
+
+
+    
+</head>
+<body>
+    <div class="container">
+        <div class="card col-md-10 mx-auto" >
+
+            <table id="myTable" class="display table table-striped table-hover" style="margin-top:10px;">
+                @foreach (var item in Model.Item1)
+                {
+                    var name = _context.Excercises.Where(x => x.Id == item).FirstOrDefault();
+                    <thead>
+                        <tr>
+                            @{
+
+                            }
+                            <th colspan="4">@name.Name</th>
+                        </tr>
+                        <tr>
+                            <th>Reps</th>
+                            <th>% 1RM</th>
+                            <th>RPE</th>
+                            
+                        </tr>
+                    </thead>
+
+                var exercise= Model.Item2.Where(x => x.ExcerciseID == item).ToList();
+               
+
+
+                <tbody>
+                    @foreach (var item2 in exercise)
+                    {
+                        <tr data-id="@item2.id">
+                            <td>@item2.reps</td>
+                            <td>@item2.RM</td>
+                            <td>@item2.RPE</td>
+                            
+                        </tr>
+                    }
+                </tbody>
+            }
+
+
+            </table>
+
+        </div>
+   </div>
+</body>
+
+</html>

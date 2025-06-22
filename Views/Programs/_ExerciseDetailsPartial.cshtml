@@ -1,0 +1,40 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+@model PhasePlayWeb.Models.DisplayPageVM
+<div class="card col-md-10 mx-auto" style="margin-top:20px;">
+    @foreach (var set in Model.Schemas)
+    {
+        <table class="table table-striped table-bordered" style=" background-color: white; border-block-color:black;">
+            <thead>
+                <tr>
+                    <td style="" class="header" colspan="4">Note: @Model.AddNote</td>
+                </tr>
+                <tr>
+                    <th>Exercises</th>
+                    <th>Reps</th>
+                    <th>RM</th>
+                    <th>RPE</th>
+                </tr>
+            </thead>
+            <tbody>
+
+                @foreach (var exercise in Model.SetExcercises)
+                {
+                    <tr>
+                    </tr>
+
+                    <tr>
+                        <td>@exercise.ExcerciseName</td>
+                        <td>@exercise.reps</td>
+                        <td>@exercise.RM</td>
+                        <td>@exercise.RPE</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>
+

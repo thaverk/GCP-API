@@ -1,0 +1,147 @@
+﻿@model Tuple<PhasePlayWeb.Models.Entities.Programme,
+             PhasePlayWeb.Models.Entities.PAExercise,
+             List<PhasePlayWeb.Models.Entities.ProgramAttributes>,
+             List<PhasePlayWeb.Models.Entities.ExerciseSetAttrib>,
+             List<Excercises>,
+             List<PhasePlayWeb.Models.Entities.SetAttributes>,
+             List<PhasePlayWeb.Models.Entities.S_RSchema>>
+
+@using PhasePlayWeb.Data;
+@using PhasePlayWeb.Models.Entities;
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Program</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
+    <link href="~/css/stylesheetphaseplay.css" rel="stylesheet" />
+    <link href="https://cdn.syncfusion.com/ej2/20.2.36/material.css" rel="stylesheet">
+    <script src="https://cdn.syncfusion.com/ej2/20.2.36/dist/ej2.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popperjs/core2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div style="margin-top:20px;padding:10px;">
+            <form>
+                <div id="programs-container">
+
+                    <div class="program-container">
+
+
+                        <label>Note</label>
+                        @if (Model.Item2 != null)
+                        {
+                            <input type="hidden" name="PAExercise.id" value="@Model.Item2.id" />
+                            <textarea class="form-control col-6" name="PAExercise.AddNote">@Model.Item2.AddNote</textarea>
+                        }
+                        else
+                        {
+                            <textarea class="form-control col-6" name="PAExercise.AddNote">No note available, enter your note here...</textarea>
+                        }
+                        &nbsp;&nbsp;&nbsp;
+                        <!-- Replace this part in ProgrammeView.cshtml -->
+                        &nbsp;&nbsp;&nbsp;
+                        @{
+                            int index = 0;
+                        }
+
+                        <!-- This is where your week containers should be displayed horizontally -->
+                        <div style="padding:10px; display: flex; overflow-x: auto;" id="week-card-container">
+                            @foreach (var j in Model.Item3)
+                            {
+                                <div class="week-container" style="margin: 10px; min-width: 450px; min-height: 500px;">
+                                    <div class="card" style="padding:10px;">
+                                        <h3>Week @j.WeekNumber</h3>
+                                        <table class="table table-bordered program-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Exercise</th>
+                                                    <th>Schema</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach (var item in Model.Item5)
+                                                {
+                                                    var list = Model.Item4.Where(x => x.ExcerciseID == item.Id && x.PerWeek == j.WeekNumber).FirstOrDefault();
+
+                                                    if (list != null)
+                                                    {
+                                                        <tr>
+                                                            <td>
+                                                                <button type="button" class="btn btn-toggle-collapse" data-toggle="collapse" data-target="#exerciseTable-@item.Id-@j.WeekNumber" aria-expanded="false" aria-controls="exerciseTable-@item.Id-@j.WeekNumber">
+                                                                    <i class="fas fa-plus" aria-hidden="true"></i>
+                                                                </button>
+                                                                <input value="@list.ExcerciseName" class="col-9" />
+                                                            </td>
+                                                            <td>
+                                                                <input value="@list.S_RSchema?.name" class="col-9" />
+                                                            </td>
+                                                        </tr>
+                                                        <tr id="exerciseTable-@item.Id-@j.WeekNumber" class="collapse">
+                                                            <td colspan="3">
+                                                                <table class="table table-bordered">
+                                                                    <thead>
+                                                                        <tr>
+                                                                            <th>Reps</th>
+                                                                            <th>1RM</th>
+                                                                            <th>RPE</th>
+                                                                        </tr>
+                                                                    </thead>
+                                                                    <tbody>
+                                                                        @foreach (var set in Model.Item4.Where(x => x.ExcerciseID == item.Id & x.PerWeek == j.WeekNumber))
+                                                                        {
+                                                                            <tr>
+                                                                                <th>@set.reps</th>
+                                                                                <th>@set.RM</th>
+                                                                                <th>@set.RPE</th>
+                                                                            </tr>
+                                                                        }
+                                                                    </tbody>
+                                                                </table>
+                                                            </td>
+                                                        </tr>
+                                                    }
+                                                    index++;
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+
+                    </div>
+                    
+                </div>
+              @*   <button type="submit" class="btn btn-primary">Save Program</button> *@
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function toggleAriaExpanded(button) {
+            const isExpanded = button.getAttribute('aria-expanded') === 'true';
+            button.setAttribute('aria-expanded', String(!isExpanded));
+        }
+
+        function toggleAriaExpanded(button) {
+            const isExpanded = button.getAttribute('aria-expanded') === 'true';
+            button.setAttribute('aria-expanded', String(!isExpanded));
+        }
+        $(document).ready(function() {
+            $('.collapse').collapse({
+                toggle: false
+            });
+        });
+    </script>
+</body>
+</html>

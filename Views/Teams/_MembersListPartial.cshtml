@@ -1,0 +1,340 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+@model Tuple<List<PhasePlayWeb.Models.Entities.User>,int>
+@using Microsoft.AspNetCore.Identity
+@using PhasePlayWeb.Data;
+@inject ApplicationDbContext dbContext
+@inject UserManager<PhasePlayWeb.Models.Entities.User> userManager
+@inject RoleManager<IdentityRole> roleManager
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Team Management</title>
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css" />
+
+    <!-- DataTables JS -->
+    <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+
+    <!--CSS Files-->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" />
+
+    <!-- Include Select2 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
+    <!-- Include Select2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+
+    <link href="~/css/stylesheetphaseplay.css" rel="stylesheet" />
+    <script>
+        $(document).ready(function () {
+        $('#membersTable').DataTable();
+        });
+    </script>
+</head>
+<body>
+    <div>
+        <h4 style="color:dimgray;font-weight:bold;">Members</h4>
+        <div class="justify-content-between align-items-center" style="padding:15px">
+            <div class="d-flex flex-row align-items-center mb-3">
+                <!--Add Individual Member-->
+                <form class="form-inline" style="padding-top:5px;display: inline-block;">
+                    <button type="button" class="btn" id="addMemberButton" style="color:#fff">
+                        <i class="fas fa-user-plus" aria-hidden="true"></i>
+                    </button>
+                </form>
+                <!-- Add Member Modal -->
+                <div class="modal fade" id="addMemberModal" tabindex="-1" role="dialog" aria-labelledby="addMemberModalLabel" aria-hidden="true">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="addMemberModalLabel">Add Member</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <form asp-action="AddMemberTeam" asp-controller="Teams" id="addMemberForm" enctype="multipart/form-data" method="post">
+                                    <div class="form-group">
+                                        <h6>Name</h6>
+                                        <input type="text" name="Name" class="form-control" placeholder="Enter Name" required />
+                                        <h6>Surname</h6>
+                                        <input type="text" name="Surname" class="form-control" placeholder="Enter Surname" required />
+                                        <h6>Email</h6>
+                                        <input type="email" name="Email" class="form-control" placeholder="Enter Email Address" required />
+                                        <!-- Hidden input for Team ID -->
+                                        <input type="hidden" id="teamId" name="TeamId" class="form-control" />
+
+                                        <div class="form-group" style="margin-top: 20px;">
+                                            <label for="role">Select User's Role:</label>
+                                            <select class="form-control" id="role" name="role">
+                                                <option value="0">Select Role</option>
+                                                <option value="Athlete">Athlete</option>
+                                                <option value="Staff">Staff</option>
+
+                                            </select>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="submit" class="btn btn-primary" form="addMemberForm">Add</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                <!--Upload Excel Spreadsheet-->
+                <form class="form-inline" style="padding-top:5px;display: inline-block;">
+                    <button type="button" class="btn" data-toggle="modal" data-target="#uploadFileModal">
+                        <i class="fas fa-file-csv"></i>
+                    </button>
+                </form>
+
+
+                <!-- Upload File Modal -->
+                <div class="modal fade" id="uploadFileModal" tabindex="-1" aria-labelledby="uploadFileModalLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="uploadFileModalLabel">Upload CSV File</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                @using (Html.BeginForm("UploadUsers", "Teams", FormMethod.Post, new { enctype = "multipart/form-data" }))
+                                {
+                                    <div class="form-group">
+                                        <label for="file">Choose file</label>
+                                        <input type="file" name="file" class="form-control mb-3" />
+                                        <input type="hidden" name="TeamId" value="@Model.Item2" class="form-control mb-3" />
+                                        <div class="form-group" style="margin-top: 20px;">
+                                            <label for="role">Select User's Role:</label>
+                                            <select class="form-control" id="role" name="role">
+                                                <option value="0">Select Role</option>
+                                                <option value="Athlete">Athlete</option>
+                                                <option value="Staff">Staff</option>
+
+                                            </select>
+                                        </div>
+
+                                    </div>
+                                    <button type="submit" class="btn btn-primary">Upload File</button>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                <form class="form-inline" style="padding-top:5px;display: inline-block;">
+                    <button type="button" class="btn" data-toggle="modal" data-target="#searchMemberModal">
+                        <i class="fas fa-search"></i> Add Existing User
+                    </button>
+                </form>
+
+                <!-- Search and Add Existing Member Modal -->
+                <div class="modal fade" id="searchMemberModal" tabindex="-1" role="dialog" aria-labelledby="searchMemberModalLabel" aria-hidden="true">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="searchMemberModalLabel">Search and Add Member</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <form asp-action="SearchAndAddMember" asp-controller="Teams" id="searchMemberForm" method="post">
+                                    <div class="form-group">
+                                        <label for="searchQuery">Search User</label>
+                                        <input type="text" id="searchQuery" name="searchQuery" class="form-control" placeholder="Enter name or email" required />
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="selectedUser">Select User</label>
+                                        <select class="form-control" id="selectedUser" name="selectedUser">
+                                            <!-- Options will be populated dynamically -->
+                                        </select>
+                                    </div>
+                                   
+                                    <input type="hidden" id="teamId" name="TeamId" value="@Model.Item2" />
+                                </form>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="submit" class="btn btn-primary" form="searchMemberForm">Add Member</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!--Table-->
+            <table id="membersTable" class="display table">
+                <thead class="thead-light">
+                    <tr>
+
+                        <th> Name </th>
+                        <th> Email </th>
+                        <th>Status</th>
+                        <th> Role</th>
+                        <th>Actions</th>
+
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @foreach (var member in Model.Item1)
+                    {
+                        <tr data-team-id="@Model.Item2">
+                            <td>@member.Name</td>
+                            <td>@member.Email</td>
+
+
+                            @{
+
+                                var Role = await userManager.GetRolesAsync(member);
+                            }
+
+                            @if (member.EmailConfirmed == false)
+                            {
+                                <td style="color: lightgray;">Pending</td>
+                            }
+                            else
+                            {
+                                <td style="color: green;">&#10004;</td>
+                            }
+
+                            <td>@Role.FirstOrDefault()</td>
+                            <td class="d-flex">
+                                <button type="button" class="btn btn-gradient-dark " data-toggle="modal"
+                                        data-target="#editMemberModal" data-id="@member.Id" data-name="@member.Name"
+                                        data-surname="@member.Surname" data-email="@member.Email" style="color:#0000ffff">
+                                    <i class="fas fa-pen" aria-hidden="true"></i>
+                                </button>
+                                &nbsp;&nbsp;
+                                @using (Html.BeginForm("DeleteMember", "Teams", FormMethod.Post))
+                                {
+                                    <input type="hidden" name="Id" value="@member.Id" />
+
+                                    <input type="hidden" id="teamId" name="TeamId" value="@Model.Item2" />
+                                    <button type="submit" class="btn" style="color:#0000ffff">
+                                        <i class="fas fa-trash" aria-hidden="true"></i>
+
+                                    </button>
+
+
+                                }
+                                &nbsp;&nbsp;
+                                @if (member.EmailConfirmed == false)
+                                {
+                                    @using (Html.BeginForm("ResendVerification", "Teams", FormMethod.Post))
+                                    {
+                                        <input type="hidden" name="Id" value="@member.Id" />
+                                        <button type="submit" class="btn btn-primary">
+                                            <span> Resend Link </span>
+
+                                        </button>
+
+                                    }
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Edit Member Pop-Up Page -->
+        <div class="modal fade" id="editMemberModal" tabindex="-1" aria-labelledby="editMemberModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="editMemberModalLabel">Edit Member</h5>
+                    </div>
+                    <div class="modal-body">
+                        @using (Html.BeginForm("EditMember", "Teams", FormMethod.Post))
+                        {
+                            <input type="hidden" id="editMemberId" name="Id" />
+                            <div class="form-group">
+                                <label for="editMemberName">Name</label>
+                                <input type="text" id="editMemberName" name="Name" class="form-control" required />
+                                <label for="editMemberSurname">Surname</label>
+                                <input type="text" class="form-control" id="editMemberSurname" name="Surname" required />
+                                <label for="editMemberEmail">Email Address</label>
+                                <input type="email" class="form-control" id="editMemberEmail" name="Email" required />
+
+                            </div>
+
+                            <button type="submit" class="btn btn-primary mt-3">Save Changes</button>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+      
+
+        <script>
+            $(document).ready(function () {
+                $('#editMemberModal').on('show.bs.modal', function (event) {
+                    var button = $(event.relatedTarget); // Button that triggered the modal
+                    var id = button.data('id');
+                    var name = button.data('name');
+                    var surname = button.data('surname');
+                    var email = button.data('email');
+
+
+                    // Update the modal's input fields
+                    var modal = $(this);
+                    modal.find('#editMemberId').val(id);
+                    modal.find('#editMemberName').val(name);
+                    modal.find('#editMemberSurname').val(surname);
+                    modal.find('#editMemberEmail').val(email);
+
+                });
+            });
+        </script>
+        <script>
+            $(document).ready(function () {
+                $('#addMemberButton').click(function () {
+                    // Get the team ID from the first user in the table
+                    var firstUserTeamId = $('#Members-table tbody tr:first-child').data('team-id');
+                    // Set the team ID in the hidden input field
+                    $('#teamId').val(@Model.Item2);
+                    // Show the modal
+                    $('#addMemberModal').modal('show');
+                });
+            });
+        </script>
+        <script>
+            $(document).ready(function () {
+                $('#createGroupButton').click(function () {
+                    $('#createGroupModal').modal('show');
+                });
+            });
+        </script>
+        <script>
+            $(document).ready(function () {
+                $('#searchQuery').on('input', function () {
+                    var query = $(this).val();
+                    $.ajax({
+                        url: '@Url.Action("SearchUsers", "Teams")',
+                        type: 'GET',
+                        data: { searchQuery: query },
+                        success: function (data) {
+                            var select = $('#selectedUser');
+                            select.empty();
+                            $.each(data, function (index, user) {
+                                select.append($('<option>', {
+                                    value: user.id,
+                                    text: user.name + ' (' + user.email + ')'
+                                }));
+                            });
+                        }
+                    });
+                });
+            });
+        </script>
+</body>
+</html>

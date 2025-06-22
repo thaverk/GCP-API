@@ -1,0 +1,206 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+    Layout = null;
+}
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Progress Dashboard</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/PhasePlayWeb.styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/vendor.bundle.base.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/fullcalendar.min.css" />
+    <link rel="stylesheet" href="~/fullcalendar.print.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
+    <link href="https://cdn.syncfusion.com/ej2/20.2.36/material.css" rel="stylesheet">
+    <script src="https://cdn.syncfusion.com/ej2/20.2.36/dist/ej2.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popperjs/core2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/fullcalendar.min.js"></script>
+    <style>
+        .search-container {
+            position: relative;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .search-form {
+            width: 100%;
+        }
+
+        .search-wrapper {
+            display: flex;
+            gap: 8px;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 12px 16px;
+            font-size: 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 6px;
+            outline: none;
+            transition: border-color 0.2s ease;
+        }
+
+            .search-input:focus {
+                border-color: #6366f1;
+            }
+
+        .search-button {
+            padding: 12px 24px;
+            background-color: #6366f1;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background-color 0.2s ease;
+        }
+
+            .search-button:hover {
+                background-color: #4f46e5;
+            }
+
+        .search-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border-radius: 6px;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            margin-top: 8px;
+            padding: 16px;
+            display: none;
+            z-index: 50;
+        }
+
+        .dropdown-category {
+            margin-bottom: 16px;
+        }
+
+            .dropdown-category:last-child {
+                margin-bottom: 0;
+            }
+
+            .dropdown-category h3 {
+                color: #4b5563;
+                font-size: 14px;
+                font-weight: 600;
+                margin-bottom: 8px;
+            }
+
+            .dropdown-category ul {
+                list-style: none;
+                padding: 0;
+                margin: 0;
+            }
+
+            .dropdown-category li {
+                margin-bottom: 4px;
+            }
+
+                .dropdown-category li:last-child {
+                    margin-bottom: 0;
+                }
+
+            .dropdown-category a {
+                display: block;
+                padding: 8px 12px;
+                color: #1f2937;
+                text-decoration: none;
+                border-radius: 4px;
+                transition: background-color 0.2s ease;
+            }
+
+                .dropdown-category a:hover {
+                    background-color: #f3f4f6;
+                }
+    </style>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const searchInput = document.querySelector('.search-input');
+            const searchDropdown = document.querySelector('#search-dropdown');
+            const recentSearches = document.querySelectorAll('.recent-search');
+            const popularCategories = document.querySelectorAll('.popular-category');
+
+            searchInput.addEventListener('input', function () {
+                const filter = searchInput.value.trim().toLowerCase();
+                if (filter !== '') {
+                    searchDropdown.style.display = 'block';
+                    recentSearches.forEach(item => {
+                        if (item.textContent.toLowerCase().includes(filter)) {
+                            item.style.display = 'block';
+                        } else {
+                            item.style.display = 'none';
+                        }
+                    });
+                    popularCategories.forEach(item => {
+                        if (item.textContent.toLowerCase().includes(filter)) {
+                            item.style.display = 'block';
+                        } else {
+                            item.style.display = 'none';
+                        }
+                    });
+                } else {
+                    searchDropdown.style.display = 'none';
+                }
+            });
+
+            document.addEventListener('click', function (event) {
+                if (!searchInput.contains(event.target) && !searchDropdown.contains(event.target)) {
+                    searchDropdown.style.display = 'none';
+                }
+            });
+        });
+    </script>
+</head>
+<body>
+    <div class="search-container">
+        <form method="get" action="/search" class="search-form">
+            <div class="search-wrapper">
+                <input type="text"
+                       name="q"
+                       placeholder="Search..."
+                       class="search-input"
+                       autocomplete="off"
+                       aria-label="Search"
+                       aria-expanded="false"
+                       aria-controls="search-dropdown">
+
+                <button type="submit" class="search-button">
+                    Search
+                </button>
+            </div>
+
+            <div id="search-dropdown" class="search-dropdown">
+                <div class="dropdown-category">
+                    <h3>Recent Searches</h3>
+                    <ul>
+                        <li class="recent-search"><a href="/search?q=example1">Example Search 1</a></li>
+                        <li class="recent-search"><a href="/search?q=example2">Example Search 2</a></li>
+                        <li class="recent-search"><a href="/search?q=example3">Example Search 3</a></li>
+                    </ul>
+                </div>
+                <div class="dropdown-category">
+                    <h3>Popular Categories</h3>
+                    <ul>
+                        <li class="popular-category"><a href="/category/1">Category 1</a></li>
+                        <li class="popular-category"><a href="/category/2">Category 2</a></li>
+                        <li class="popular-category"><a href="/category/3">Category 3</a></li>
+                    </ul>
+                </div>
+            </div>
+        </form>
+    </div>
+
+</body>
+</html>
+

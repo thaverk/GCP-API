@@ -1,0 +1,49 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+@model List<PhasePlayWeb.Models.Entities.Programme>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>PhasePlay.io</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
+    <link href="~/css/stylesheetphaseplay.css" rel="stylesheet" />
+</head>
+<body>
+    <div class="container">
+        <table id="myTable" class="display table table-striped table-hover">
+
+            <thead>
+                <tr>
+                    <th></th>
+                    <th> Name of Schema</th>
+                    <th> Owner</th>
+
+                </tr>
+            </thead>
+
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr data-id="@item.id" onclick="location.href='@Url.Action("ProgrammeView", "Programs", new { id = item.id })'">
+                        <td></td>
+                        <td>@item.Name</td>
+                        <td>PhasePlay</td>
+                    </tr>
+                }
+
+
+        </table>
+
+    </div>
+
+
+
+</body>
+
+
+</html>

@@ -1,0 +1,295 @@
+﻿@model Tuple<List<PhasePlayWeb.Models.Entities.Session>, List<int>, PhasePlayWeb.Models.Entities.Session, PhasePlayWeb.Models.Entities.PAExercise>
+    @using PhasePlayWeb.Data;
+    @inject ApplicationDbContext _context
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Program View</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="~/css/stylesheetphaseplay.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
+    <link href="https://cdn.syncfusion.com/ej2/20.2.36/material.css" rel="stylesheet">
+    <script src="https://cdn.syncfusion.com/ej2/20.2.36/dist/ej2.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+    <style>
+        .container {
+            padding: 0 15px;
+        }
+
+        .card {
+            margin-bottom: 15px;
+        }
+
+        .modal-dialog {
+            max-width: 100%;
+            margin: 0;
+        }
+
+        .modal-content {
+            border-radius: 0;
+        }
+
+        .form-control {
+            width: 100%;
+        }
+       media (max-width: 768px) {
+
+         .d-inline-flex {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .d-inline-flex h1, .d-inline-flex h4 {
+            font-size: 1.5rem;
+        }
+
+        .d-inline-flex button {
+            margin-top: 10px;
+        }
+
+        .table {
+            font-size: 0.9rem;
+        }
+
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+            <h1 class="text-center" style="padding:10px;">Log Workout</h1>
+            <div class="card col-md-9" style="padding:10px;">
+            <div class="d-flex justify-content-between align-items-center" style="padding:10px;">
+                <h1>Session Details</h1>
+                <button type="button" class="btn" style="border-radius:30px;color:#fff" data-toggle="modal" data-target="#sessionDetailsModal">
+                    <i class="fas fa-eye" aria-hidden="true"></i>
+                </button>
+            
+
+
+                    <!-- Modal -->
+                    <div class="modal fade" id="sessionDetailsModal" tabindex="-1" role="dialog" aria-labelledby="sessionDetailsModalLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-sm" role="document"> <!-- Added modal-sm class for smaller modal -->
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                @{
+                                    var program = _context.Programs.FirstOrDefault(x => x.id == Model.Item3.ProgramID);
+                                }
+                                <h5 class="modal-title" id="sessionDetailsModalLabel">@program?.Name </h5>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="mb-3" style="font:bold">
+                                        <h5>Phase:</h5>
+                                        <h6>@Model.Item4?.name</h6>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <h5>Date Assigned:</h5>
+                                        <h6>@Model.Item3.DateAssigned.ToString("MM/dd/yyyy")</h6>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <h5>Week:</h5>
+                                        <h6>@Model.Item3.PerWeek?.ToString()</h6>
+                                    </div>
+                                    <h5>Note:</h5>
+                                    <div class="card-body col-12 align-content-center" style="border-color:lightgray;border-radius:10px;">
+                                    @Model.Item4?.AddNote
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <div class="card col-md-12" style="padding:10px;">
+                     <form asp-action="SessionUpdate" method="post" onsubmit="showSuccessMessage(event)">
+                    @for (int i = 0; i < Model.Item2.Count; i++)
+                    {
+                        var sessionId = Model.Item2[i];
+                        var name = _context.Excercises.FirstOrDefault(x => x.Id == sessionId);
+                        var sessions = Model.Item1.Where(x => x.ExcerciseID == sessionId).ToList();
+
+                        if (name != null)
+                        {
+                                        <div class="d-inline-flex " style="justify-content:space-evenly;padding:10px;">
+                                            <h4 class="text-center">@name.Name</h4>
+                                        </div>
+                                        <table class="display table table-hover">
+                                            <thead class="thead-light">
+                                                <tr>
+                                                    <th>Set</th>
+                                                    <th>Reps</th>
+                                                    <th>Done</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                    @for (int j = 0; j < sessions.Count; j++)
+                                    {
+                                        var ses = sessions[j];
+                                                        <tr>
+                                                            <td>
+                                                @(j + 1)<br />
+                                                               <span style="font-size: 12px; color: dimgray;">@ses.RM%</span>
+                                                            </td>
+                                                            <td>
+                                                                <input type="hidden" name="Sessions[@i][@j].id" value="@ses.id" />
+                                                                <input type="hidden" name="Sessions[@i][@j].UserId" value="@ses.UserId" />
+                                                                <input type="hidden" name="Sessions[@i][@j].ExcerciseID" value="@ses.ExcerciseID" />
+                                                                <input type="hidden" name="Sessions[@i][@j].ExcerciseName" value="@ses.ExcerciseName" />
+                                                                <input type="hidden" name="Sessions[@i][@j].SchemaID" value="@ses.SchemaID" />
+                                                                <input type="hidden" name="Sessions[@i][@j].DateAssigned" value="@ses.DateAssigned" />
+                                                                <input type="hidden" name="Sessions[@i][@j].ProgramID" value="@ses.ProgramID" />
+                                                                <input type="hidden" name="Sessions[@i][@j].PAExerciseID" value="@ses.PAExerciseID" />
+                                                                <input type="hidden" name="Sessions[@i][@j].PerWeek" value="@ses.PerWeek" />
+                                                                <input type="hidden" name="Sessions[@i][@j].RPE" value="@ses.RPE" />
+                                                                <input type="hidden" name="Sessions[@i][@j].RM" value="@ses.RM" />
+                                                                <input type="hidden" name="Sessions[@i][@j].Velocity" value="@ses.Velocity" />
+                                                                <input type="hidden" name="Sessions[@i][@j].DateCompleted" value="@DateTime.Now" />
+                                                                <input type="hidden" name="Sessions[@i][@j].GroupProgrammeId" value="@ses.GroupProgrammeId" />
+                                                                <input type="text" class="col-10 form-control form-control-lg" name="Sessions[@i][@j].reps" value="@ses.reps" />
+                                                            </td>
+                                                            <td>
+                                                                <input type="number" min="0" class="col-10 form-control form-control-lg" name="Sessions[@i][@j].WeightUsed" value="@ses.WeightUsed" oninput="storeInputValue(this)" />
+                                                            </td>
+
+                                                        <script>
+                                                            function storeInputValue(input) {
+                                                                localStorage.setItem(input.name, input.value);
+                                                            }
+
+                                                            function restoreInputValues() {
+                                                                var inputs = document.querySelectorAll('input[name^="Sessions"]');
+                                                                inputs.forEach(function(input) {
+                                                                    var storedValue = localStorage.getItem(input.name);
+                                                                    if (storedValue) {
+                                                                        input.value = storedValue;
+                                                                    }
+                                                                });
+                                                            }
+
+                                                            document.addEventListener('DOMContentLoaded', function() {
+                                                                restoreInputValues();
+                                                            });
+
+                                                            document.querySelector('form').addEventListener('submit', function(event) {
+                                                                localStorage.clear();
+                                                            });
+                                                        </script>
+                                            @* <td>
+                                                    <input type="checkbox" class="form-control" name="Sessions[@i][@j].Completed" value="true" @(ses.Completed.GetValueOrDefault() ? "checked" : "") />
+                                                </td> *@
+                                                        </tr>
+                                    }
+                                            </tbody>
+                                        </table>
+                        }
+                    }
+                        <button type="submit" class="btn btn-primary">Submit</button>
+                    </form>
+            </div>
+        </div>
+    </div>
+    <script>
+        async function showSuccessMessage(event) {
+            event.preventDefault();
+            var form = event.target;
+            var formData = new FormData(form);
+
+            // Show loading screen
+            var loadingScreen = document.createElement('div');
+            loadingScreen.id = 'loading-screen';
+            loadingScreen.style.position = 'fixed';
+            loadingScreen.style.top = '0';
+            loadingScreen.style.left = '0';
+            loadingScreen.style.width = '100%';
+            loadingScreen.style.height = '100%';
+            loadingScreen.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+            loadingScreen.style.display = 'flex';
+            loadingScreen.style.justifyContent = 'center';
+            loadingScreen.style.alignItems = 'center';
+            loadingScreen.style.zIndex = '9999';
+            loadingScreen.innerHTML = '<div class="spinner-border text-light" role="status"><span class="sr-only">Loading...</span></div>';
+            document.body.appendChild(loadingScreen);
+
+            try {
+                let response = await fetch(form.action, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (response.ok) {
+                    setTimeout(function() {
+                        window.location.href = '@Url.Action("AthleteDashboard", "AthleteViews")';
+                    }, 1000);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred while submitting the form.');
+            } finally {
+                // Hide loading screen
+                document.body.removeChild(loadingScreen);
+            }
+        }
+
+        // Ensure the form is submitted correctly on mobile view
+        document.addEventListener('DOMContentLoaded', function() {
+            var forms = document.querySelectorAll('form');
+            forms.forEach(function(form) {
+                form.addEventListener('submit', function(event) {
+                    event.preventDefault();
+                    showSuccessMessage(event);
+                });
+            });
+        });
+    </script>
+    @*  <script>
+        async function showSuccessMessage(event) {
+            event.preventDefault();
+            var form = event.target;
+            var formData = new FormData(form);
+
+            try {
+                let response = await fetch(form.action, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (response.ok) {
+                    alert('Submitted successfully');
+                    setTimeout(function() {
+                        window.location.href = '@Url.Action("MyPrograms", "AthleteViews")';
+                    }, 1000);
+                } else {
+                    alert('Failed to submit the form.');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred while submitting the form.');
+            }
+        }
+
+        // Ensure the form is submitted correctly on mobile view
+        document.addEventListener('DOMContentLoaded', function() {
+            var forms = document.querySelectorAll('form');
+            forms.forEach(function(form) {
+                form.addEventListener('submit', function(event) {
+                    event.preventDefault();
+                    showSuccessMessage(event);
+                });
+            });
+        });
+    </script> *@
+
+</body>
+</html>

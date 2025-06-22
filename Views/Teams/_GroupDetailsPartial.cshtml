@@ -1,0 +1,84 @@
+﻿@model Tuple<PhasePlayWeb.Models.Entities.Groups,List<PhasePlayWeb.Models.Entities.User>,List<PhasePlayWeb.Models.Entities.User>>
+
+<div class="modal-header">
+    <h2>@Model.Item1.Name</h2>
+    <button class="btn" data-toggle="modal" data-target="#addmemberModal">
+        <i class="fas fa-user-plus" aria-hidden="true"></i>
+    </button>
+</div>
+
+<div class="modal-body">
+    <ul>
+        @foreach (var member in Model.Item2)  
+        {
+            if (member != null)
+            {
+            <li>@member.Name @member.Surname</li>
+            }
+        }
+    </ul>
+</div>
+
+
+<!-- Add Member Modal -->
+<div class="modal fade" id="addmemberModal" tabindex="-1" role="dialog" aria-labelledby="addmemberModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addmemberModalLabel">Add Member</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                
+                    @foreach (var member in Model.Item3)
+                    {
+                    <input type="checkbox" class="member-checkbox" value="@member.Id" /> @member.Name @member.Surname
+                    }
+                
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" id="saveMemberButton" data-group-id="@Model.Item1.Id">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('saveMemberButton').addEventListener('click', function () {
+        var selectedMembers = [];
+        var checkboxes = document.getElementsByClassName('member-checkbox');
+        for (var i = 0; i < checkboxes.length; i++) {
+            if (checkboxes[i].checked) {
+                selectedMembers.push(checkboxes[i].value);
+            }
+        }
+
+        if (selectedMembers.length > 0) {
+            var groupId = this.getAttribute('data-group-id');
+            // Perform AJAX request to add members
+            fetch('/Teams/AddMemberToGroup', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ groupId: groupId, members: selectedMembers })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Close the modal
+                        $('#addmemberModal').modal('hide');
+                        // Optionally, refresh the member list
+                        location.reload();
+                    } else {
+                        alert('Error adding members: ' + data.message);
+                    }
+                });
+        } else {
+            alert('Please select at least one member');
+        }
+    });
+</script>
+

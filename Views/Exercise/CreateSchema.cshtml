@@ -1,0 +1,34 @@
+﻿@{
+    ViewData["Title"] = "Create Schema";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>PhasePlay.io</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
+    <link href="~/css/stylesheetphaseplay.css" rel="stylesheet" />
+</head>
+<body>
+    <div class="container">
+        <div class="card col-md-8 mx-auto" style="margin-top:20px;">
+           
+                <h2>Create Schema</h2>
+            <div class="row" style="padding:10px;">
+                    <form asp-action="CreateSchema" method="post">
+                        <div class="form-group">
+                            <label for="weeks">Number of Weeks</label>
+                            <input type="number" class="form-control" id="weeks" name="weeks" required />
+                        </div>
+                        <div class="form-group">
+                            <label for="name">Schema Name</label>
+                            <input type="text" class="form-control" id="name" name="name" required />
+                        </div>
+                        <button type="submit" class="btn btn-primary">Create</button>
+                    </form>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

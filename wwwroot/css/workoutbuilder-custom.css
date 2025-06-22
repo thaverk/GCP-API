@@ -1,0 +1,904 @@
+﻿/* Breadcrumb Styles */
+.breadcrumb {
+    display: flex;
+    flex-wrap: wrap;
+    padding: 0.75rem 1rem;
+    margin-bottom: 0.4rem;
+    list-style: none;
+    background-color: #f8f9fa;
+    border-radius: 0.25rem;
+}
+
+.breadcrumb-item + .breadcrumb-item {
+    padding-left: 0.5rem;
+}
+
+    .breadcrumb-item + .breadcrumb-item::before {
+        display: inline-block;
+        padding-right: 0.5rem;
+        color: #6c757d;
+        content: "/";
+    }
+
+.breadcrumb-item a {
+    color: #509ee3;
+    text-decoration: none;
+}
+
+    .breadcrumb-item a:hover {
+        text-decoration: underline;
+    }
+
+.breadcrumb-item.active {
+    color: #6c757d;
+}
+
+/* Admin logo in header */
+.admin-logo {
+    height: 40px;
+    margin-right: 15px;
+}
+
+/* Back Button Styles */
+.back-button {
+    display: inline-flex;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding: 10px;
+    color: #fff;
+    background-color: #509ee3;
+    border-radius: 30px;
+    text-decoration: none;
+    border: 0.25rem;
+    border-color: #c2daf0;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+    .back-button:hover {
+        background-color: #c2daf0;
+        color: #fff;
+    }
+
+    .back-button i {
+        color: #fff;
+    }
+
+/* Button color overrides */
+.btn-primary {
+    background-color: #509ee3 !important;
+    border-color: #509ee3 !important;
+    color: #fff !important;
+}
+
+    .btn-primary:hover,
+    .btn-primary:focus,
+    .btn-primary:active {
+        background-color: #c2daf0 !important;
+        border-color: #c2daf0 !important;
+    }
+
+/* ===== HEADER STYLES ===== */
+.header {
+    height: 60px;
+    width: 100%;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1030;
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    background-color: white;
+    border-bottom: 1px solid #eaeaea;
+    justify-content: space-between;
+}
+
+    .header .profile-pic {
+        margin-left: auto;
+    }
+
+    .header .form-group {
+        margin-bottom: 0;
+        flex-grow: 1;
+        max-width: 300px;
+    }
+
+    .header select.form-control {
+        height: 38px;
+    }
+
+/* ===== SIDEBAR STYLES ===== */
+.sidebar {
+    height: calc(100vh - 60px);
+    position: fixed;
+    top: 60px;
+    left: 0;
+    padding-top: 15px;
+    width: 60px; /* Initial width - icons only */
+    background-color: #FFFFFF;
+    z-index: 1020;
+    overflow: hidden;
+    transition: width 0.3s ease;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+    /* Expand sidebar on hover */
+    .sidebar:hover {
+        width: 250px;
+    }
+
+    /* Improve avatar and username display */
+    .sidebar .profile-section {
+        display: flex;
+        align-items: center;
+        padding: 0 15px 15px 15px;
+        margin-bottom: 10px;
+        white-space: nowrap;
+    }
+
+    .sidebar .avatar-sm {
+        width: 30px;
+        height: 30px;
+        min-width: 30px; /* Prevent squishing */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .sidebar .profile-username {
+        margin-left: 10px;
+        font-size: 16px;
+        opacity: 0;
+        transition: opacity 0.2s ease;
+        color: dimgray;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .sidebar:hover .profile-username {
+        opacity: 1;
+    }
+
+    /* Team selector styling */
+    .sidebar .team-selector {
+        padding: 0 15px;
+        margin-bottom: 15px;
+        opacity: 0;
+        transition: opacity 0.2s ease;
+        white-space: nowrap;
+    }
+
+    .sidebar:hover .team-selector {
+        opacity: 1;
+    }
+
+    /* Navigation links styling */
+    .sidebar .nav-link {
+        display: flex;
+        align-items: center;
+        padding: 10px 15px;
+        color: dimgray;
+        white-space: nowrap;
+        font-size: 16px;
+        font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+    }
+
+    /* Center icons when collapsed */
+    .sidebar:not(:hover) .nav-link {
+        justify-content: center;
+        padding: 10px 0;
+        width: 60px; /* Match sidebar width */
+    }
+
+    /* Fix for sidebar icons alignment in collapsed state */
+    .sidebar:not(:hover) .nav-item {
+        display: flex;
+        justify-content: center;
+        width: 60px;
+        padding: 0;
+        margin: 0;
+    }
+
+    .sidebar .nav-link i {
+        min-width: 30px;
+        font-size: 18px;
+        text-align: center;
+        color: dimgray;
+        transition: color 0.2s;
+        opacity: 1; /* Always show icons */
+    }
+
+    /* Ensure icons are always visible and centered */
+    .sidebar:not(:hover) .nav-link i {
+        margin: 0 auto;
+        padding: 0;
+        width: 60px; /* Match sidebar width */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .sidebar .nav-link span {
+        opacity: 0;
+        transition: opacity 0.2s ease;
+        margin-left: 10px;
+    }
+
+    .sidebar:hover .nav-link span {
+        opacity: 1;
+    }
+
+    /* Hover effects */
+    .sidebar .nav-link:hover,
+    .sidebar .nav-link:hover i {
+        color: #c2daf0;
+    }
+
+    /* Logout button styling */
+    .sidebar .nav-item form button {
+        display: flex;
+        align-items: center;
+        padding: 10px 15px;
+        color: dimgray;
+        width: 100%;
+        text-align: left;
+        background: transparent;
+        border: none;
+        font-size: 16px;
+        font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+        cursor: pointer;
+    }
+
+    .sidebar:not(:hover) .nav-item form button {
+        justify-content: center;
+        padding: 10px 0;
+        width: 60px; /* Match sidebar width */
+    }
+
+        /* Perfect alignment for button icons */
+        .sidebar:not(:hover) .nav-item form button i {
+            margin: 0 auto;
+            padding: 0;
+            width: 60px; /* Match sidebar width */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+    .sidebar .nav-item form button i {
+        min-width: 30px;
+        font-size: 18px;
+        text-align: center;
+        opacity: 1; /* Always show icons */
+    }
+
+    .sidebar .nav-item form button span {
+        opacity: 0;
+        transition: opacity 0.2s ease;
+        margin-left: 10px;
+    }
+
+    .sidebar:hover .nav-item form button span {
+        opacity: 1;
+    }
+
+    .sidebar .nav-item form button:hover {
+        color: #c2daf0;
+    }
+
+    /* Horizontal rule styling */
+    .sidebar hr {
+        margin: 10px 15px;
+        border-top: 1px solid #eaeaea;
+    }
+
+    /* Style for profile avatar in sidebar */
+    .sidebar .nav {
+        display: flex;
+        flex-direction: column;
+        height: calc(100% - 30px);
+    }
+
+    .sidebar .avatar-sm {
+        width: 30px;
+        height: 30px;
+        min-width: 30px;
+        font-size: 14px;
+        font-weight: 500;
+    }
+
+    /* Perfect vertical alignment for avatar */
+    .sidebar:not(:hover) .nav-item .nav-link .avatar-sm {
+        margin: 0 auto;
+    }
+
+    /* Push the profile link to the bottom */
+    .sidebar .mt-auto {
+        margin-top: auto !important;
+        border-top: 1px solid #eaeaea;
+        padding-top: 10px;
+    }
+
+    /* Dropdown styling in collapsed state */
+    .sidebar:not(:hover) .nav-item.dropdown .nav-link i {
+        margin: 0 auto;
+        padding: 0;
+        width: 60px; /* Match sidebar width */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    /* ===== DROPDOWN STYLES ===== */
+    /* Enhanced dropdown styling for better positioning and behavior */
+    .sidebar .dropdown-menu {
+        margin-top: 0;
+        border-radius: 0 4px 4px 4px;
+        border-left: none;
+        left: 60px; /* Match sidebar collapsed width */
+        transition: left 0.3s ease;
+        box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
+        min-width: 180px;
+    }
+
+    .sidebar:hover .dropdown-menu {
+        left: 250px; /* Match expanded sidebar width */
+    }
+
+/* Only apply hover effect on larger screens */
+@media (min-width: 768px) {
+    .sidebar .nav-item.dropdown:hover .dropdown-menu {
+        display: block;
+    }
+}
+
+/* Fix positioning for dropdowns in collapsed state */
+.sidebar:not(:hover) .dropdown-menu {
+    left: 60px;
+    top: 0;
+}
+
+/* Style dropdown items for better visibility */
+.dropdown-item {
+    color: dimgray;
+    padding: 8px 16px;
+}
+
+    .dropdown-item:hover {
+        background-color: #f8f9fa;
+        color: #509ee3;
+    }
+
+.dropdown-toggle.no-caret::after {
+    display: none !important;
+}
+
+/* Add a small delay to prevent accidental triggering */
+.dropdown-menu {
+    animation-duration: 0.3s;
+    animation-fill-mode: both;
+    animation-name: fadeIn;
+}
+
+@keyframes fadeIn {
+    0% {
+        opacity: 0;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+
+/* Ensure consistent height for all nav items */
+.sidebar .nav-item {
+    height: 40px; /* Consistent height */
+}
+
+/* Special fix for dropdown item alignment */
+.sidebar:not(:hover) .nav-item.dropdown {
+    display: flex;
+    justify-content: center;
+}
+
+    /* Fix for dropdown button positioning */
+    .sidebar:not(:hover) .nav-item.dropdown .dropdown-toggle {
+        margin: 0 auto;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        width: 60px;
+    }
+
+/* Sub-menu styling to prevent overlapping with other items */
+.nav-item {
+    position: relative;
+}
+
+/* Updated submenu styling for static display instead of dropdown */
+.sub-menu {
+    position: static; /* Static positioning instead of absolute */
+    display: block; /* Always visible */
+    min-width: 100%; /* Match parent width */
+    background-color: #fff; /* Slightly different background to distinguish */
+    border-radius: 0; /* Remove border radius */
+    box-shadow: none; /* Remove shadow */
+    padding: 5px 0; /* Reduce padding */
+    margin: 0; /* Remove margins */
+    padding-left: 20px; /* Indent items */
+    list-style: none; /* No bullets */
+    border-left: 3px solid #eaeaea; /* Add visual indicator */
+}
+
+    /* Style for submenu items */
+    .sub-menu .nav-item {
+        height: auto !important; /* Override the fixed height */
+        width: 100%;
+        display: block;
+        min-height: unset; /* Remove min-height */
+        padding: 0; /* Remove padding */
+        margin: 2px 0; /* Small vertical margin */
+    }
+
+        .sub-menu .nav-item a {
+            padding: 6px 15px; /* Adjust padding */
+            display: block;
+            white-space: nowrap;
+            color: dimgray;
+            text-decoration: none;
+            font-size: 14px; /* Slightly smaller font */
+        }
+
+            .sub-menu .nav-item a:hover {
+                background-color: #eaeaea; /* Lighter hover effect */
+                color: #509ee3;
+            }
+
+/* Handle submenu when sidebar is collapsed */
+.sidebar:not(:hover) .sub-menu {
+    display: none; /* Hide submenu when sidebar is collapsed */
+}
+
+/* Remove hover effects that were showing/hiding the submenu */
+.sidebar .nav-item:hover > .sub-menu {
+    display: block; /* Always display when parent is visible */
+}
+
+/* Remove any JavaScript-related classes that might be affecting display */
+.show, .collapse, .collapsing {
+    display: block !important;
+}
+
+/* Additional styling for team-selector to ensure visibility */
+.team-selector {
+    opacity: 1 !important; /* Override the default opacity */
+    display: block !important; /* Ensure it's displayed */
+    margin-bottom: 15px;
+    transition: none; /* Remove fade effect that might be hiding it */
+}
+
+.sidebar:hover .team-selector {
+    opacity: 1 !important;
+}
+
+/* Ensure dropdown is properly styled and visible */
+#teamDropdown1 {
+    width: 100%;
+    display: block;
+    margin: 5px 0;
+}
+
+/* Fix for specific page cases */
+.sidebar .team-selector.force-show {
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+/* ===== CONTENT STYLES ===== */
+.content {
+    margin-left: 60px; /* Match icon-only sidebar width */
+    padding: 0 20px 20px 20px;
+    transition: margin-left 0.3s ease;
+    flex-grow: 1;
+}
+
+    .content.with-secondary-sidebar {
+        margin-left: 260px; /* 60px (primary) + 200px (secondary) */
+    }
+
+.container {
+    margin-top: 60px;
+}
+
+.navigation-container {
+    margin-top: 70px;
+}
+
+/* ===== RESPONSIVE STYLES ===== */
+@media (max-width: 768px) {
+    .sidebar {
+        width: 0; /* Initially hidden on mobile */
+    }
+
+        .sidebar:hover {
+            width: 250px; /* Full width on hover for mobile */
+        }
+
+    .secondary-sidebar {
+        left: 0;
+        z-index: 1021; /* Above primary on mobile */
+    }
+
+    .content.with-secondary-sidebar {
+        margin-left: 200px;
+    }
+
+    .content {
+        margin-left: 0;
+    }
+
+    .header .col-3.form-group {
+        max-width: 60%;
+    }
+
+    .header select.form-control {
+        font-size: 0.9rem;
+        height: 32px;
+        padding: 0.25rem 0.5rem;
+    }
+}
+
+/*Table Styles */
+/* Target both rows and cells */
+#datatables3,
+#datatables3 thead,
+#datatables3 tbody,
+#datatables3 thead tr,
+#datatables3 tbody tr,
+#datatables3 thead th,
+#datatables3 tbody td,
+#datatables3 tfoot {
+    background-color: white !important;
+}
+
+/* Override DataTables striping classes with higher specificity */
+table#datatables3.dataTable tbody tr,
+table#datatables3.dataTable tbody tr.odd,
+table#datatables3.dataTable tbody tr.even,
+table#datatables3.dataTable tbody tr.odd > .sorting_1,
+table#datatables3.dataTable tbody tr.even > .sorting_1,
+table#datatables3.dataTable tbody tr:hover,
+table#datatables3.dataTable tbody tr.odd:hover,
+table#datatables3.dataTable tbody tr.even:hover {
+    background-color: white !important;
+}
+
+/* Target selected and hover states for cells */
+#datatables3 tbody tr td.selected,
+#datatables3 tbody tr:hover td {
+    background-color: white !important;
+}
+
+/* Target any special highlighting that DataTables might apply */
+#datatables3.display tbody tr td.highlight,
+#datatables3.display tbody tr.highlight td {
+    background-color: white !important;
+}
+
+/* Ensure sorted columns don't have different background */
+#datatables3 tbody tr td.sorting_1,
+#datatables3 tbody tr td.sorting_2,
+#datatables3 tbody tr td.sorting_3 {
+    background-color: white !important;
+}
+
+/* Table border styles with dimgray color */
+#datatables3.display {
+    border: 0.2px dimgray !important;
+}
+
+    /* Add borders between rows with dimgray color */
+    #datatables3.display tbody tr {
+        border: none !important;
+        border-bottom: 0.2px gray !important;
+    }
+/*Table Styles End*/
+
+/*Program Creation Styles*/
+body {
+    background-color: #F7F7F7;
+}
+
+.week-navigation {
+    background-color: #f8f9fa;
+    padding: 10px 15px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+}
+
+    .week-navigation .btn-outline-secondary {
+        border: none;
+    }
+
+.day-column {
+    position: relative;
+    height: 300px;
+    background-color: #fff;
+    border-radius: 5px;
+    padding: 10px;
+    margin-bottom: 15px;
+    overflow-y: hidden; /* Changed from auto to hidden */
+}
+
+.day-header {
+    font-weight: bold;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.week-tabs {
+    margin: 20px 0;
+}
+
+.toggle-container {
+    display: flex;
+    align-items: center;
+}
+
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 34px;
+}
+
+    .toggle-switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+.toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+    border-radius: 34px;
+}
+
+    .toggle-slider:before {
+        position: absolute;
+        content: "";
+        height: 26px;
+        width: 26px;
+        left: 4px;
+        bottom: 4px;
+        background-color: white;
+        transition: .4s;
+        border-radius: 50%;
+    }
+
+input:checked + .toggle-slider {
+    background-color: #6610f2;
+}
+
+    input:checked + .toggle-slider:before {
+        transform: translateX(26px);
+    }
+
+.floating-button {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background-color: #4e73df;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    z-index: 100;
+}
+
+.vertical-text {
+    writing-mode: vertical-lr;
+    transform: rotate(180deg);
+    text-align: center;
+    padding: 10px 0;
+    font-weight: bold;
+    background-color: #fff;
+}
+
+.add-button {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: white;
+    color: #6610f2;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    display: flex; /* Changed from none to flex */
+    align-items: center;
+    justify-content: center;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    z-index: 20; /* Increased from 10 to 20 to ensure it's above workout cards */
+    opacity: 0; /* Initially hidden but takes up space */
+    transition: opacity 0.2s ease; /* Smooth fade in/out */
+    pointer-events: none; /* Don't intercept events when invisible */
+}
+
+.day-column:hover .add-button {
+    opacity: 1; /* Show on hover */
+    pointer-events: auto; /* Re-enable pointer events when visible */
+}
+
+
+/* New styles for workout cards */
+.workout-card {
+    border: 1px solid #e0e0e0;
+    border-radius: 5px;
+    margin-bottom: 8px;
+    background-color: #f8f9fa;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+    position: relative;
+    z-index: 10; /* Lower than the add button's z-index */
+}
+
+.workouts-container {
+    height: calc(100% - 40px);
+    margin-top: 40px; /* Space for the add button */
+    overflow-y: auto; /* Move scrolling to this container */
+    width: 100%;
+}
+
+
+.workout-card-header {
+    background-color: #6610f2;
+    color: white;
+    padding: 5px 10px;
+    font-weight: bold;
+    font-size: 0.9rem;
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.workout-card-body {
+    padding: 5px 10px;
+}
+
+.workout-card-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-bottom: 3px;
+}
+
+.workout-card-text {
+    font-size: 0.8rem;
+    color: #6c757d;
+    margin-bottom: 0;
+}
+
+.remove-workout {
+    font-size: 0.8rem;
+    color: white;
+    cursor: pointer;
+    opacity: 0.7;
+}
+
+    .remove-workout:hover {
+        opacity: 1;
+    }
+
+/* Fixed modal backdrop issue */
+.modal-backdrop {
+    z-index: 1040;
+}
+
+.modal {
+    z-index: 1050;
+}
+
+/* Drag and drop styles */
+.workout-card.dragging {
+    opacity: 0.5;
+    cursor: move;
+}
+
+.day-column.drag-over {
+    background-color: #f3f3f3;
+    border: 2px dashed #6610f2;
+}
+
+.add-row-btn {
+    margin-top: 10px;
+    background-color: #f8f9fa;
+    border: 1px dashed #6c757d;
+    color: #6c757d;
+    padding: 5px 15px;
+    border-radius: 4px;
+}
+
+    .add-row-btn:hover {
+        background-color: #e9ecef;
+        color: #495057;
+    }
+
+.exercise-item {
+    border-top: 1px solid #e0e0e0;
+    padding: 5px 0;
+}
+
+    .exercise-item:first-child {
+        border-top: none;
+    }
+
+.workout-card-title {
+    font-weight: bold;
+    font-size: 0.85rem;
+    margin-bottom: 2px;
+}
+
+.workout-card-body {
+    max-height: 150px;
+    overflow-y: auto;
+}
+
+.schema-view-container {
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+.schema-week-card {
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease;
+}
+
+    .schema-week-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .schema-week-card .card-header {
+        font-weight: bold;
+    }
+
+    .schema-week-card .btn {
+        width: 100%;
+        margin-top: 10px;
+    }
+
+    .schema-week-card .card-text {
+        margin-bottom: 8px;
+    }
+
+.day-number {
+    font-weight: bold;
+    font-size: 14px;
+    padding: 5px;
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+    text-align: center;
+}
+
+.day-column {
+    position: relative;
+    border: 1px solid #dee2e6;
+    padding: 10px;
+    min-height: 150px;
+}
+/*End of Program Styles*/

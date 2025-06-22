@@ -1,0 +1,101 @@
+﻿@model PhasePlayWeb.Models.Entities.User
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Update Body Weight</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #343a40;
+            color: #f8f9fa;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .card {
+            border-radius: 15px;
+            background-color: #454d55;
+            max-width: 400px;
+            width: 100%;
+        }
+        .form-control:focus {
+            box-shadow: none;
+            border-color: #007bff;
+        }
+        .btn-primary {
+            background-color: #007bff;
+            border-color: #007bff;
+        }
+        .btn-primary:hover {
+            background-color: #0056b3;
+            border-color: #0056b3;
+        }
+        .btn-outline-light:hover {
+            color: #007bff;
+            background-color: #f8f9fa;
+        }
+        .input-group-text {
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <div class="card-body">
+                <h2 class="card-title text-center mb-4">Update Body Weight</h2>
+                <form id="bodyWeightForm" asp-action="UpdateBodyWeight" asp-controller="AthleteViews" method="post">
+                    <div class="form-group">
+                        <label for="bodyWeight" class="sr-only">Body Weight</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control form-control-lg bg-secondary text-light border-0" id="bodyWeight" name="BodyWeight" placeholder="Enter weight" required step="0.1" min="20" max="300">
+                            <div class="input-group-append">
+                                <span class="input-group-text bg-secondary text-light border-0">kg</span>
+                            </div>
+                        </div>
+                    </div>
+@* 
+                    <div class="form-group">
+                        <label for="bodyWeight" class="sr-only">Height</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control form-control-lg bg-secondary text-light border-0" id="height" name="height" placeholder="Enter Height" required step="0.1" min="20" max="300">
+                            <div class="input-group-append">
+                                <span class="input-group-text bg-secondary text-light border-0">Meters</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="bodyWeight" class="sr-only">Enter Gender </label>
+                        <div class="input-group">
+                            <ejs-dropdownlist id="PhaseSelect" dataSource="@(new List<string> { "Male", "Female" })"
+                                              fields="@(new Syncfusion.EJ2.DropDowns.DropDownListFieldSettings { Text = "Name", Value = "Id" })"
+                                              name="gender" placeholder="Select Gender">
+                            </ejs-dropdownlist>
+                            <div class="input-group-append">
+                                <span class="input-group-text bg-secondary text-light border-0">kg</span>
+                            </div>
+                        </div>
+                    </div> *@
+
+                    <div class="d-flex justify-content-center mt-4">
+                        <a href="/" class="btn btn-lg btn-outline-light mr-2">Cancel</a>
+                        <button type="submit" class="btn btn-lg btn-primary" id="saveBodyWeight">Save</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

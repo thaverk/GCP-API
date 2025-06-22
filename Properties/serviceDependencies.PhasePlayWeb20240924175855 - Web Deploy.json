@@ -1,0 +1,11 @@
+{
+  "dependencies": {
+    "mssql2": {
+      "serviceConnectorResourceId": "/subscriptions/[parameters('subscriptionId')]/resourcegroups/[parameters('resourceGroupName')]/providers/Microsoft.Web/sites/PhasePlayWeb20240924175855/providers/Microsoft.ServiceLinker/linkers/ConnectionStringsWorkoutDB_9AA3BF74B5",
+      "secretStore": "AzureAppSettings",
+      "resourceId": "/subscriptions/[parameters('subscriptionId')]/resourcegroups/[parameters('resourceGroupName')]/providers/Microsoft.Sql/servers/workoutdbdbserver/databases/WorkoutDB",
+      "type": "mssql.azure",
+      "connectionId": "ConnectionStrings:WorkoutDB"
+    }
+  }
+}

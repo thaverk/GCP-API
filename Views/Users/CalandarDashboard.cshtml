@@ -1,0 +1,222 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background-image: url("https://img.freepik.com/premium-photo/green-background-with-blue-background_873925-13459.jpg?w=900");
+        margin: 0;
+        padding: 0;
+    }
+
+    .container {
+        width: 100%;
+        margin: 50px auto;
+        padding: 20px;
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        text-align: center;
+    }
+
+    h1 {
+        color: #3f51b5;
+        margin-bottom: 20px;
+    }
+
+    #calendar {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 5px;
+        margin-top: 20px;
+    }
+
+    .day {
+        background-color: white;
+        padding: 20px;
+        border: 1px solid #ccc;
+        cursor: pointer;
+        text-align: center;
+        position: relative;
+        border-radius: 4px;
+    }
+
+        .day:hover {
+            background-color: #eee;
+        }
+
+    .event {
+        background-color: #3f51b5;
+        color: white;
+        padding: 5px;
+        margin-top: 5px;
+        border-radius: 3px;
+    }
+
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0,0,0,0.4);
+    }
+
+    .modal-content {
+        background-color: white;
+        margin: 15% auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 50%;
+        border-radius: 8px;
+    }
+
+    .close {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+    }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+    footer {
+        margin: auto;
+    }
+
+    .logo img {
+        background-color: white;
+        width: 200px; /* Adjust the width according to your needs */
+        height: auto;
+        margin-right: 20px;
+    }
+
+    
+
+
+</style>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Calendar</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <header>
+        <div class="logo">
+            <img src="https://phaseplay.io/wp-content/uploads/2020/09/site-logo.svg" alt="Company Logo">
+        </div>
+    </header>
+
+    <div class="container">
+        <h1>Calendar</h1>
+        <div id="calendar"></div>
+    </div>
+
+    <!-- Modal for adding events -->
+    <div id="eventModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Add Event</h2>
+            <form id="eventForm">
+                <label for="eventTitle">Event Title:</label>
+                <input type="text" id="eventTitle" name="eventTitle" required>
+
+                <label for="eventDate">Event Date:</label>
+                <input type="date" id="eventDate" name="eventDate" required>
+
+                <input type="submit" value="Add Event">
+            </form>
+        </div>
+    </div>
+
+    @* <div class="container">
+        <h6>© 2024 - PhasePlayWeb - Privacy</h6>
+        <div id="footer"></div>
+    </div> *@
+
+    <script src="script.js"></script>
+</body>
+</html>
+
+
+<script>
+        document.addEventListener("DOMContentLoaded", () => {
+        const calendar = document.getElementById("calendar");
+        const eventModal = document.getElementById("eventModal");
+        const eventForm = document.getElementById("eventForm");
+        const closeModal = document.querySelector(".close");
+
+        // Function to generate calendar days
+        function generateCalendar() {
+            const daysInMonth = 30; // Change according to the month
+            for (let i = 1; i <= daysInMonth; i++) {
+                const day = document.createElement("div");
+                day.classList.add("day");
+                day.textContent = i;
+                day.addEventListener("click", () => openModal(i));
+                calendar.appendChild(day);
+            }
+        }
+
+        // Open modal for adding an event
+        function openModal(day) {
+            eventModal.style.display = "block";
+            eventForm["eventDate"].value = `2024-08-${day.toString().padStart(2, "0")}`;
+        }
+
+        // Close the modal
+        closeModal.onclick = () => {
+            eventModal.style.display = "none";
+        }
+
+        // Close the modal when clicking outside of it
+        window.onclick = (event) => {
+            if (event.target == eventModal) {
+                eventModal.style.display = "none";
+            }
+        }
+
+        // Handle event form submission
+        eventForm.onsubmit = (event) => {
+            event.preventDefault();
+            const title = eventForm["eventTitle"].value;
+            const date = eventForm["eventDate"].value;
+            addEvent(title, date);
+            eventModal.style.display = "none";
+        }
+
+        // Function to add event to the calendar
+        function addEvent(title, date) {
+            const day = new Date(date).getDate();
+            const dayCell = calendar.children[day - 1];
+            const eventDiv = document.createElement("div");
+            eventDiv.classList.add("event");
+            eventDiv.textContent = title;
+            dayCell.appendChild(eventDiv);
+        }
+
+        // Initialize the calendar
+        generateCalendar();
+    });
+
+</script>
+
+
+
+

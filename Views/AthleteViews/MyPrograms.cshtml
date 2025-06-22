@@ -1,0 +1,347 @@
+﻿@* @model Tuple<List<PhasePlayWeb.Models.AthleteViewProgrammeView>,List<PhasePlayWeb.Models.PastProgramView>,List<PhasePlayWeb.Models.Entities.SessionHistory>,List<PhasePlayWeb.Models.PastProgramView>>
+@inject PhasePlayWeb.Data.ApplicationDbContext _context
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Programs</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="~/css/stylesheetphaseplay.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
+    <link href="https://cdn.syncfusion.com/ej2/20.2.36/material.css" rel="stylesheet">
+    <script src="https://cdn.syncfusion.com/ej2/20.2.36/dist/ej2.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.21/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.21/js/dataTables.bootstrap4.min.js"></script>
+    <script>
+        $(document).ready(function () {
+        // Initialize DataTables
+        $('#datatables').DataTable();
+        });
+    </script>
+    <style>
+        .container .nav-tabs {
+            font-size: 16px;
+            font-weight: bold;
+            color: dimgray;
+            border-bottom: none; /* Remove the line under nav-tabs */
+        }
+
+            .container .nav-tabs .nav-link {
+                font-size: 16px;
+                font-weight: bold;
+                color: dimgray;
+            }
+
+        .card {
+            margin-top: 20px;
+        }
+
+            .card h5, .card h6 {
+                display: flex;
+                justify-content: center;
+                color: dimgray;
+                background-color: white;
+            }
+
+            .card h6 {
+                color: black;
+            }
+
+        .modal-dialog {
+            max-width: 100%;
+            margin: 0;
+        }
+
+        .modal-content {
+            height: 100vh;
+        }
+
+        .modal-body {
+            overflow-y: auto;
+        }
+
+        media (max-width: 768px) {
+            .card
+
+        {
+            height: auto;
+            padding: 10px;
+        }
+
+        .card h5, .card h6 {
+            font-size: 14px;
+        }
+
+        .modal-dialog {
+            margin: 0;
+        }
+
+        .modal-content {
+            height: 100vh;
+        }
+
+        .modal-body {
+            overflow-y: auto;
+        }
+
+        .card h5 {
+            font-size: 12px;
+        }
+
+        .card h6 {
+            font-size: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="row">
+            <h1>Active Programs</h1>
+        </div>
+        <div class="row">
+            <div class="col-12 overflow-auto" style="white-space: nowrap;background-color:#F7F7F7;">
+                <div class="d-flex flex-wrap" style="overflow-x: auto;">
+                    @if (Model.Item1.Count == 0)
+                    {
+                        <div class="col-12">
+                            <div class="card justify-content-center" style="height: 100px; padding-top:10px;background-color:white; overflow: hidden;">
+                                <h5>You currently have no active programs for today</h5>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        @foreach (var item in Model.Item1)
+                        {
+                            <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+                                <div class="card justify-content-center" onclick="location.href='@Url.Action("ProgramView", "AthleteViews", new { programid = item.programmeId, GroupProgramID = item.GroupProgrammeId,GroupSessionID =item.GroupSessionID,IscatchUp=false })'" style="cursor: pointer; height: 100px; padding-top:10px;background-color:white">
+                                    <h5>
+                                        @(item.Name.Length > 15 ? item.Name.Substring(0, 15) + "..." : item.Name)
+                                    </h5>
+                                    <h6>Phase: @item.PAExerciseName</h6>  
+                                           <h6>Week: @item.WeekOfProgramme</h6>
+                                    <h6>@String.Format("{0:dd/MM/yy}", item.NextSessionDate)</h6>
+                                </div>
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+
+
+
+        <div class="row">
+            <h1>Missed Program</h1>
+        </div>
+        <div class="row">
+            <div class="col-12" style="padding:10px;overflow-x:auto">
+                <div class="d-flex flex-wrap">
+                    @if (Model.Item4.Count == 0)
+                    {
+                        <div class="col-12">
+                            <div class="card justify-content-center" style="height: 100px; padding-top:10px;background-color:white">
+                                <h5>There are no missed programs</h5>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        @for (var i = 0; i < Model.Item4.Count; i++)
+                        {
+                            var item = Model.Item4[i];
+                            <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+                                <div class="card justify-content-center" onclick="location.href='@Url.Action("ProgramView", "AthleteViews", new { programid = item.ProgramId, GroupProgramID = item.GroupProgrammeID,GroupSessionID =item.GroupSessionID, IscatchUp=true })'" style="cursor: pointer; height: 100px; padding-top:10px;background-color:white">
+                                    <h5>
+                                        @(item.ProgramName.Length > 15 ? item.ProgramName.Substring(0, 15) + "..." : item.ProgramName)
+                                    </h5>
+                                    <h6>Week:@item.Week</h6>
+                                    <h6>Phase: @item.Phase</h6>
+                                    <h6>@String.Format("{0:dd/MM/yy}", item.DateAssigned)</h6>
+
+                                </div>
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <h1>Program History</h1>
+        </div>
+        <div class="row">
+            <div class="col-12" style="padding:10px;overflow-x:auto">
+                <div class="d-flex flex-wrap">
+                    @if (Model.Item2.Count == 0)
+                    {
+                        <div class="col-12">
+                            <div class="card justify-content-center" style="height: 100px; padding-top:10px;background-color:white">
+                                <h5>There are no active programs</h5>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        // Pagination variables
+                        var pageSize = 12; // Number of cards per page
+                        int currentPage = ViewData["CurrentPage"] != null ? (int)ViewData["CurrentPage"] : 1;
+                        var list = Model.Item2.OrderByDescending(x => x.DateCompleted).ToList();
+                        var totalPages = Math.Ceiling((double)list.Count / pageSize);
+                        var pagedItems = list.Skip((currentPage - 1) * pageSize).Take(pageSize);
+
+                        foreach (var orderedItem in pagedItems)
+                        {
+                            var i = list.IndexOf(orderedItem);
+                            <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+                                <div class="card justify-content-center" data-toggle="modal" data-target="#programHistoryDetailsModal_@i" style="cursor: pointer; height: 100px; padding-top:20px;background-color:white">
+                                    <h5>
+                                        @(orderedItem.ProgramName.Length > 15 ? orderedItem.ProgramName.Substring(0, 15) + "..." : orderedItem.ProgramName)
+                                    </h5>
+                                    <h6>Week: @orderedItem.Week</h6>
+                                </div>
+                            </div>
+                        }
+
+                        <!-- Pagination Controls -->
+                        <div class="col-12 mt-3">
+                            <nav aria-label="Program history pagination">
+                                <ul class="pagination justify-content-center">
+                                    <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                                        <a class="page-link" href="@Url.Action("MyPrograms", "AthleteViews", new { page = currentPage - 1 })" aria-label="Previous">
+                                            <span aria-hidden="true">&laquo;</span>
+                                        </a>
+                                    </li>
+
+                                    @for (var i = 1; i <= totalPages; i++)
+                                    {
+                                        <li class="page-item @(i == currentPage ? "active" : "")">
+                                            <a class="page-link" href="@Url.Action("MyPrograms", "AthleteViews", new { page = i })">@i</a>
+                                        </li>
+                                    }
+
+                                    <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                                        <a class="page-link" href="@Url.Action("MyPrograms", "AthleteViews", new { page = currentPage + 1 })" aria-label="Next">
+                                            <span aria-hidden="true">&raquo;</span>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </nav>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+
+
+        @for (var i = 0; i < Model.Item2.Count; i++)
+        {
+            var item = Model.Item2.OrderBy(x=>x.DateCompleted).ToList()[i];
+            var list = Model.Item2.OrderByDescending(x => x.DateCompleted).ToList();
+
+            var orderedItem = list[i];
+
+            var history = Model.Item3.Where(x => x.UserId == orderedItem.UserID & x.ProgramID == orderedItem.ProgramId & x.DateAssigned == orderedItem.DateAssigned & x.GroupProgrammeId == orderedItem.GroupID & x.GroupSessionID == orderedItem.GroupSessionID).OrderBy(x=>x.SessionSetID).ToList();
+           
+
+            List<int> exerciseIds = new List<int>();
+            foreach (var exerciseSet in history)
+            {
+                if (!exerciseIds.Contains(exerciseSet.ExcerciseID))
+                {
+                    exerciseIds.Add(exerciseSet.ExcerciseID);
+                }
+            }
+
+            <!-- Modal to view Workout Details -->
+            <div class="modal fade" id="programHistoryDetailsModal_@i" tabindex="-1" role="dialog" aria-labelledby="programHistoryDetailsModalLabel_@i" aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <ul class="nav nav-tabs">
+                                <li class="nav-item">
+                                    <a class="nav-link active" id="tab1_@i" data-toggle="tab" href="#tab-content1_@i">Sessions</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" id="tab2_@i" data-toggle="tab" href="#tab-content2_@i">Program Stats</a>
+                                </li>
+                            </ul> 
+                            <div class="tab-content">
+                             <div class="tab-pane fade show active" id="tab-content1_@i">
+                            <div class="card col-md-9" style="padding:10px;">
+
+                                <div class="d-inline-flex flex-column" style="padding:10px;">
+                                    <div class="mb-3" style="font:bold">
+                                        <h3> @(orderedItem.ProgramName.Length > 15 ? orderedItem.ProgramName.Substring(0, 15) + "..." : orderedItem.ProgramName)</h3>
+                                    </div>
+
+                                    <div class="mb-3" style="font:bold">
+                                        <h5>Phase: @orderedItem.Phase</h5>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <h5>Date Completed: @String.Format("{0:dd/MM/yy}", @orderedItem.DateCompleted)</h5>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <h5>Week: @orderedItem.Week</h5>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card col-12">
+                                @foreach (var ex in exerciseIds)
+                                {
+                                    var name = _context.Excercises.FirstOrDefault(x => x.Id == ex);
+                                    var sessions = history.Where(x => x.ExcerciseID == ex).ToList();
+
+                                    <div class="d-inline-flex " style="justify-content:space-between;padding:10px;">
+                                        <h4 class="text-center">@name.Name</h4>
+                                    </div>
+                                    <table class="display table">
+                                        <thead class="thead-light">
+                                            <tr>
+                                                <th>Set</th>
+                                                <th>Reps</th>
+                                                <th>Done</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @for (int j = 0; j < sessions.Count; j++)
+
+                                            {
+                                                var ses = sessions[j];
+
+                                                <tr>
+                                                    <td>
+                                                        @(j + 1)<br />
+                                                        <span style="font-size: 12px; color: dimgray;">@ses.RM%</span>
+                                                    </td>
+                                                    <td>@ses.reps</td>
+                                                    <td>@ses.WeightUsed</td>
+                                                </tr>
+
+                                            }
+                                        </tbody>
+                                    </table>
+                                }
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</body>
+</html>*@

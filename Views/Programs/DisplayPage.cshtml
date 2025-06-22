@@ -1,0 +1,50 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+
+@model PhasePlayWeb.Models.DisplayPageVM
+
+<div >
+    <label for="exercise1" class="form-label">Exercise</label>
+    <select class="form-select" name="Sets[0].Exercise" id="exerciseDropdown">
+       <option>Select a Week</option>
+        @foreach (var item in Model.Schemas)
+        { 
+            
+            <option value="@item.SetWeek">Week @item.SetWeek</option>
+        }
+    </select>
+</div>
+
+<br>
+<div id="exerciseDetails" >
+  
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('#exerciseDropdown').change(function () {
+                var selectedWeek = $(this).val();
+                var viewModel = @Html.Raw(Json.Serialize(Model));
+                viewModel.SelectedWeek = selectedWeek;
+
+                $.ajax({
+                    url: '@Url.Action("GetExerciseDetails", "Programs")',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(viewModel),
+                    success: function (data) {
+                        $('#exerciseDetails').html(data);
+                    },
+                    error: function (xhr, status, error) {
+                        console.error("AJAX Error: ", status, error);
+                    }
+                });
+            });
+        });
+    </script>
+}
+

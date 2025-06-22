@@ -1,0 +1,365 @@
+﻿
+@using PhasePlayWeb.Data;
+@model PhasePlayWeb.Models.MembersListViewModel;
+
+@inject ApplicationDbContext dBContext
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Team Management</title>
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css" />
+
+    <!-- DataTables JS -->
+    <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+
+    <!--CSS Files-->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" />
+    
+    <link href="~/css/workoutbuilder.css" rel="stylesheet" />
+    <link href="~/css/workoutbuilder-custom.css" rel="stylesheet" />
+    <link href="~/lib/font-awesome/css/font-awesome.min.css" rel="stylesheet" />
+
+    <link rel="stylesheet" href="https://cdn.syncfusion.com/ej2/20.2.36/material.css" />
+
+    <!-- Syncfusion JS -->
+    <script src="https://cdn.syncfusion.com/ej2/20.2.36/dist/ej2.min.js"></script>
+
+</head>
+<body>
+    <div class="container">
+
+        <div class="card-header" style="background-color:white; font-weight:300; margin-bottom:30px;border-radius:10px;text-align:center">
+            <h1 style="color:dimgray;font-weight:bold;">Team Management</h1>
+        </div>
+
+        <!--Groups Section-->
+        <div class="card" style="background-color:white; padding:15px; margin-bottom:30px;border-radius:10px">
+            <h4 style="color:dimgray;font-weight:bold;">Groups</h4>
+            <!--Create Group Button-->
+            <div style="padding:15px">
+                <form class="form-inline" style="padding-top:5px">
+                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createGroupModal" id="createGroupButton">
+                        Create Group
+                    </button>
+                </form>
+            </div>
+
+            <!--Create Group Modal-->
+            <div class="modal fade" id="createGroupModal" tabindex="-1" role="dialog" aria-labelledby="createGroupModalLabel" aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="createGroupModalLabel">Create Group</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <form id="CreateGroupForm" > 
+                                <div class="form-group">
+                                    <label for="groupName">Group Name</label>
+                                    <input type="text" class="form-control" id="groupName" name="groupName" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="members-list">Members</label>
+                                   <div id="members-list"></div>
+                                </div>
+                                <button type="submit" class="btn btn-primary">Create Group</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!--View Groups-->
+            <div class="form-group">
+                <table id="groups-table" class="display table">
+                    <thead class="thead-light">
+                        <tr>
+                            <th>Group Name</th>
+                            <th>Member Count</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Groups will be populated here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card" style="background-color:white; padding:15px; margin-bottom:30px;border-radius:10px">
+            <div id="Members-list" >
+                <!-- Members list will be loaded here -->
+            </div>
+        </div>
+        
+     <!-- View Group Modal -->
+        <div class="modal fade" id="viewGroupModal" tabindex="-1" role="dialog" aria-labelledby="viewGroupModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content" id="viewGroupModalContent">
+                    <!-- Content will be loaded here via AJAX -->
+                </div>
+            </div>
+        </div>
+     <!---->
+
+    <!-- Edit Member Pop-Up Page -->
+    <div class="modal fade" id="editMemberModal" tabindex="-1" aria-labelledby="editMemberModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editMemberModalLabel">Edit Exercise</h5>
+                </div>
+                <div class="modal-body">
+                    @using (Html.BeginForm("EditMember", "Teams", FormMethod.Post))
+                    {
+                        <input type="hidden" id="editMemberId" name="Id" />
+                        <div class="form-group">
+                            <label for="editMemberName">Name</label>
+                            <input type="text" id="editMemberName" name="Name" class="form-control" required />
+                            <label for="editMemberSurname">Surname</label>
+                            <input type="text" class="form-control" id="editMemberSurname" name="Surname" required />
+                            <label for="editMemberEmail">Email Address</label>
+                            <input type="email" class="form-control" id="editMemberEmail" name="Email" required />
+                            <label for="editMemberAge">Age</label>
+                            <input type="number" class="form-control" id="editMemberAge" name="Age" />
+                            <label for="editMemberWeight">Weight</label>
+                            <input type="number" class="form-control" id="editMemberWeight" name="Weight" />
+                            <label for="editMemberHeight">Height</label>
+                            <input type="number" class="form-control" id="editMemberHeight" name="Height" />
+                        </div>
+
+                        <button type="submit" class="btn btn-primary mt-3">Save Changes</button>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+        @await Html.PartialAsync("_ToastNotifications")
+
+</div>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.min.js"></script> <!-- Add this line to include DataTables script -->
+    <script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js"></script> <!-- Add this line to include WebFont script -->
+
+    <script>
+        $(document).ready(function () {
+            var alertMessage = '@TempData["Alert"]';
+            if (alertMessage) {
+                var toastType = 'toast_default';
+
+                if (alertMessage.includes('successfully')) {
+                    toastType = 'toast_success';
+                } else if (alertMessage.includes('Try Again')) {
+                    toastType = 'toast_error';
+                }
+
+                var toastObj = $('#' + toastType).data('ej2_instances')[0];
+                toastObj.content = alertMessage;
+                toastObj.show();
+            }
+        });
+    </script>
+
+    <!--   Core JS Files   -->
+    
+    <script>
+        $(document).ready(function () {
+            $('#editMemberButton').click(function () {
+                $('#editMemberModal').modal('show');
+            });
+        });
+    </script>
+    <script>
+        $(document).ready(function () {
+            $('#addMemberButton').click(function () {
+                $('#addMemberModal').modal('show');
+            });
+        });
+    </script>
+    <script src="~/js/team-dropdown.js"></script>
+
+   @*  <script>
+        $(document).ready(function () {
+            $('#createGroupButton').click(function () {
+                $('#createGroupModal').modal('show');
+            });
+        });
+    </script> *@
+    <script>
+        function viewgroup(groupId) {
+            $.ajax({
+                url: '@Url.Action("GetGroupDetails", "Teams")',
+                type: 'GET',
+                data: { groupId: groupId },
+                success: function (data) {
+                    $('#viewGroupModalContent').html(data);
+                    $('#viewGroupModal').modal('show');
+                },
+                error: function () {
+                    alert('Error loading group details.');
+                }
+            });
+        }
+    </script>
+   @*  <script>
+            // $(document).ready(function () {
+            //     $('#teamDropdown').change(function () {
+            //         var teamId = $(this).val();
+            //         console.log("Selected teamId: " + teamId); // Log selected teamId
+            //         if (teamId != 0) {
+            //             loadMembers(teamId);
+            //         }
+            //     });
+            // });
+        
+        function loadMembers(teamId) {
+            
+                
+                
+                $.ajax({
+                    url: '@Url.Action("GetMembersByTeamId", "Teams")',
+                    type: 'POST',
+                    data: { teamId: teamId },
+                    success: function (data) {
+                        $('#Members-list').html(data);
+                        $('#Members-table').DataTable();
+                    }
+                });
+
+                // Load team members
+                $.ajax({
+                    url: '@Url.Action("GetTeamMembers", "Teams")',
+                    type: 'GET',
+                    data: { teamId: teamId },
+                    success: function (data) {
+                        var membersList = $('#members-list');
+                        membersList.empty(); // Clear the existing list
+                        $.each(data, function (index, member) {
+                            membersList.append('<li><input type="checkbox" id="member-' + member.id + '" name="member-' + member.id + '" value="' + member.id + '"> <label for="member-' + member.id + '">' + member.name +' ' + member.surname + '</label></li>');
+                        });
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('Error loading team members:', error);
+                    }
+                });
+
+                // Load groups
+                $.ajax({
+                    url: '@Url.Action("GetGroupsByTeamId", "Teams")',
+                    type: 'GET',
+                    data: { teamId: teamId },
+                    success: function (data) {
+                        var groupsTableBody = $('#groups-table tbody');
+                        groupsTableBody.empty(); // Clear the existing list
+                        $.each(data, function (index, group) {
+                        groupsTableBody.append('<tr><td>' + group.name + '</td><td>' + group.memberCount + '</td><td><button class="btn btn-sm btn-danger" onclick="deleteGroup(' + group.id + ')">Delete</button></td><td><button class="btn btn-primary" onclick="viewgroup(' + group.id + ')">View Group</button></td></tr>');
+                        });
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('Error loading groups:', error);
+                    }
+                });
+
+                         
+        }
+
+          
+        
+    </script> *@
+    <script>
+        $(document).ready(function () {
+            if (@TempData["Alert"] != null) {
+                toastr.info(@TempData["Alert"]);
+            }
+        });
+    </script>
+
+    <script>
+        function deleteGroup(groupId) {
+            if (confirm('Are you sure you want to delete this group?')) {
+                $.ajax({
+                    url: '@Url.Action("DeleteGroup", "Teams")',
+                    type: 'POST',
+                    data: { id: groupId },
+                    success: function (response) {
+                        alert('Group deleted successfully!');
+                        $('#teamSelect').trigger('change'); // Reload groups
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('Error deleting group:', error);
+                    }
+                });
+            }
+        }
+    </script>
+    <script>
+    function viewGroup(groupId) {
+        // Make an HTTP GET request to the ViewGroup action method
+        $.get("/Teams/ViewGroup/" + groupId, function (data) {
+            // Handle the response data and update the modal content
+            // ...
+        });
+        $('#viewGroupModal').modal('show');
+    }
+    </script>
+    <script>
+        function filterMembers() {
+            var input = document.getElementById('searchbar');
+            var filter = input.value.toLowerCase();
+            var ul = document.getElementById("members-list");
+            var li = ul.getElementsByTagName('li');
+
+            for (var i = 0; i < li.length; i++) {
+                var name = li[i].getAttribute('data-name');
+                if (name.toLowerCase().indexOf(filter) > -1) {
+                    li[i].style.display = "";
+                } else {
+                    li[i].style.display = "none";
+                }
+            }
+        }
+    </script>
+    <script>
+        $(document).ready(function () {
+            $('#CreateGroupForm').on('submit', function (e) {
+                e.preventDefault();
+
+                var groupName = $('#groupName').val();
+                var teamId = $('#teamDropdown1').val();
+                var selectedMembers = [];
+
+                $('#members-list input[type="checkbox"]:checked').each(function () {
+                        selectedMembers.push($(this).attr('value'));
+                });
+
+                // Store member ids in a List<string>
+                
+                var memberIds = [];
+                $('#members-list input[type="checkbox"]:checked').each(function () {
+                        
+                    memberIds.push($(this).attr('id'));
+                });
+
+                $.ajax({
+                    url: '@Url.Action("CreateGroup", "Teams")',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ groupName: groupName, teamId: teamId, memberIds: memberIds }),
+                    success: function (response) {
+                        alert('Group created successfully!');
+                        $('#createGroupModal').modal('hide');
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('Error creating group:', error);
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

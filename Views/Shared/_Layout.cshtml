@@ -1,0 +1,278 @@
+﻿@using Microsoft.AspNetCore.Identity
+@using PhasePlayWeb.Models.Entities
+@using PhasePlayWeb.Data
+@inject ApplicationDbContext dbContext
+@inject UserManager<User> userManager
+
+@{
+    var currentView = ViewContext.RouteData.Values["action"]?.ToString();
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+    var isAthleteView = currentController?.Equals("AthleteViews", StringComparison.OrdinalIgnoreCase) ?? false;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - PhasePlayWeb</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
+    <link href="~/css/workoutbuilder.css" rel="stylesheet" />
+    <link href="~/css/workoutbuilder-custom.css" rel="stylesheet" />
+    <link href="https://cdn.syncfusion.com/ej2/20.2.36/material.css" rel="stylesheet">
+    <link href="https://cdn.datatables.net/1.10.21/css/jquery.dataTables.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.21/js/jquery.dataTables.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.syncfusion.com/ej2/20.2.36/material.css" />
+    <script src="https://cdn.syncfusion.com/ej2/20.2.36/dist/ej2.min.js"></script>
+    
+</head>
+<body>
+    <div class="container">
+        <!-- Header Section -->
+        <header class="header">
+            @{
+                // Define these variables with null checks
+                var userEmail = Context.Request.Cookies["UserEmail"];
+                var currentUser = userEmail != null ? await userManager.FindByEmailAsync(userEmail) : null;
+                var userRoles = currentUser != null ? await userManager.GetRolesAsync(currentUser) : new List<string>();
+
+                // Display admin logo if user is admin
+                if (currentUser != null && userRoles.Contains("Admin"))
+                {
+                    <a href="@Url.Action("ProgressDashboard", "ProgressDashboard")">
+                       <div class="d-flex align-items-center">
+                            <img src="~/img/workout_builder_logo.png" alt="WorkoutBuilder Logo" class="admin-logo" />
+                        </div>
+                    </a>
+                    
+                }
+
+                if (currentUser != null && userRoles.Contains("Athlete"))
+                {
+                    // For Athletes, show team dropdown in header
+                    var member = dbContext.TeamMembers.Where(x => x.UserId == currentUser.Id).ToList();
+                    var teams = new List<Teams>();
+                    foreach (var item in member)
+                    {
+                        var team = dbContext.Teams.Where(x => x.Id == item.TeamId).FirstOrDefault();
+                        if (team != null)
+                        {
+                            teams.Add(team);
+                        }
+                    }
+
+                    <div class="col-3 form-group mr-auto">
+                        <select class="form-control" id="teamDropdown1" onchange="saveAndLoadMembers(this.value)">
+                            @if (teams.Count > 0)
+                            {
+                                @foreach (var team in teams)
+                                {
+                                    <option value="@team.Id">@team.Name</option>
+                                }
+                            }
+                            else
+                            {
+                                <option value="">No teams available</option>
+                            }
+                        </select>
+                    </div>
+                }
+
+                    <!-- Staff/Admin User Menu -->
+                    <div class="ml-auto d-flex align-items-center">
+                        <div>
+                            <a href="@Url.Action("ProfilePage", "Users")" class="nav-link">
+                                <div class="avatar-sm" style="background-color: #682773; color: white; border-radius: 50%; display: flex; justify-content: center; align-items: center;">
+                                    @(string.IsNullOrEmpty(currentUser.Name) ? "?" : currentUser.Name.Substring(0, 1) + (string.IsNullOrEmpty(currentUser.Surname) ? "" : currentUser.Surname.Substring(0, 1)))
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+            }
+        </header>
+
+        <!--Icon-first Sidebar-->
+        <div class="sidebar @(isAthleteView || (currentView == "ProfilePage" && userRoles.Contains("Athlete")) ? "d-none" : "")" id="sidebar">
+            @if (currentUser != null && !userRoles.Contains("Athlete"))
+            {
+                <!-- Navigation Links -->
+                <ul class="nav flex-column">
+                    @{
+                        if (userRoles.Contains("Admin"))
+                        {
+
+                    
+                            <!-- Team Selector - Appears on hover, For Non-Athletes -->
+                            @if (currentView != "CreateSchema" && currentView != "SRSchema" && currentView != "SchemaView" && currentView != "EditSchema"
+                            && currentView != "_SetsPartial" && currentView != "_ExerciseDetailsPartial" && currentView != "_OutputPartial"
+                            && currentView != "DisplayPage" && currentView != "MyProgrammes" && currentView != "WorkoutBuilder"
+                            && currentView != "ProgrammeView" && currentView != "EditSets" && currentView != "TeamBuilder"
+                            && currentView != "ProfilePage" && currentView != "MyPrograms" && currentView != "ProgramView")
+                            {
+                                <div class="team-selector" style="padding: 5px 15px; white-space: nowrap;">
+                                    @if (userRoles.Contains("Admin"))
+                                    {
+                                        var teams = dbContext.Teams.Where(x => x.UserID == currentUser.Id).ToList();
+                                        <select class="form-control form-control-sm" id="teamDropdown1" onchange="saveAndLoadMembers(this.value)">
+                                            <option>Select Team</option>
+                                            @foreach (var team in teams)
+                                            {
+                                                <option value="@team.Id">@team.Name</option>
+                                            }
+                                        </select>
+                                    }
+                                    else
+                                    {
+                                        var teamlist = dbContext.TeamMembers.Where(x => x.UserId == currentUser.Id).Select(x => x.TeamId).ToList();
+                                        <select class="form-control form-control-sm" id="teamDropdown1" onchange="saveAndLoadMembers(this.value)">
+                                            @foreach (var team in teamlist)
+                                            {
+                                                <option value="@team">@dbContext.Teams.Where(x => x.Id == team).Select(x => x.Name).FirstOrDefault()</option>
+                                            }
+                                        </select>
+                                    }
+                                </div>
+                            }
+
+                            <li class="nav-item">
+                                <a href="@Url.Action("ProgressDashboard", "ProgressDashboard")" class="nav-link">
+                                    <i class="fas fa-home"></i>
+                                    <span>Dashboard</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#" class="nav-link">
+                                    <i class=" fas fa-book"></i>
+                                    <span>Library</span>
+                                </a>
+                                <ul class="sub-menu">
+                                    <li class="nav-item">
+                                        <a href="@Url.Action("Templates", "TemplateManagement")">
+                                                <i class="fas fa-edit" aria-hidden="true" style="margin-right:10px;"></i>
+                                                Programs
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="dropdown-item" href="@Url.Action("schemaTemplate", "TemplateManagement")">
+                                            <i class="fas fa-plus" aria-hidden="true" style="margin-right:10px;"></i>
+                                            Schemas
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="dropdown-item" href="@Url.Action("exerciseTemplate", "TemplateManagement")">
+                                            <i class="fas fa-dumbbell" aria-hidden="true" style="margin-right:10px;"></i>
+                                            Exercises
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="dropdown-item" href="@Url.Action("workOutTemplates", "Exercise")">
+                                            <i class="fas fa-dumbbell" aria-hidden="true" style="margin-right:10px;"></i>
+                                            Workouts
+                                        </a>
+                                    </li>  
+                                </ul>
+                            </li>
+
+                            <li>
+                                <a href="#" class="nav-link">
+                                    <i class="fas fa-users-cog"></i>
+                                    <span>User Management </span>
+                                </a>
+                                <ul class="sub-menu">
+                                    <li class="nav-item">
+                                        <a href="@Url.Action("MembersList", "Teams")" class="nav-link">
+                                            <i class="fas fa-users" aria-hidden="true" style="margin-right:10px;"></i>
+                                            <span>Team Management</span>
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="dropdown-item" href="">
+                                            <i class="fas fa-user" aria-hidden="true" style="margin-right:10px;"></i>
+                                            Client Tracker
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="dropdown-item" href="#" data-toggle="modal" data-target="#createTeamModal">
+                                            <i class="fas fa-plus" aria-hidden="true" style="margin-right:10px;"></i>
+                                            Create New Team
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
+
+                        }
+                        else
+                        {
+                            <li class="nav-item">
+                                <a href="@Url.Action("ProgressDashboard", "ProgressDashboard")" class="nav-link">
+                                    <i class="fas fa-home"></i>
+                                    <span>Dashboard</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="@Url.Action("Templates", "TemplateManagement")" class="nav-link">
+                                    <i class="fas fa-layer-group"></i>
+                                    <span>Templates</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="@Url.Action("MembersList", "Teams")" class="nav-link">
+                                    <i class="fas fa-users"></i>
+                                    <span>Team Management</span>
+                                </a>
+                            </li>
+                        }
+                    }
+                </ul>
+            }
+        </div>
+
+        <!--Sidebar End-->
+
+        <!-- Create Team Modal -->
+        <div class="modal fade" id="createTeamModal" tabindex="-1" role="dialog" aria-labelledby="createTeamModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="createTeamModalLabel">Create New Team</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <form id="createTeamForm" action="/Teams/TeamBuilder" method="post" style="padding:20px">
+                        <div class="form-group">
+                            <div class="d-flex" style="margin-top:5px;">
+                                <h5>Team Name</h5>
+                                <input type="text" id="Name" name="Name" class="border-1 ml-2 col-8" placeholder="Enter Team Name" />
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary align-content-end" style="margin-top:5px;">
+                            Create
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- breadcrumbs and back button here -->
+        <div class="navigation-container d-flex">
+            @await Html.PartialAsync("_BackButtonPartial")
+            @await Html.PartialAsync("_BreadcrumbsPartial")
+        </div>
+    </div>
+
+    <script src="~/js/sidebar-function.js"></script>
+    <script src="~/js/sidebar-dropdown.js"></script>
+    <script src="~/js/team-dropdown.js"></script>
+
+    <div class="content" id="content">
+        @RenderBody()
+    </div>
+    <ejs-scripts></ejs-scripts>
+    @RenderSection("Scripts", required: false)
+</body>
+</html>

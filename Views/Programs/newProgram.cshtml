@@ -1,0 +1,572 @@
+﻿@model Tuple<List<PhasePlayWeb.Models.Entities.Excercises>, List<PhasePlayWeb.Models.Entities.S_RSchema>>
+
+@{
+    var exercisesJson = System.Text.Json.JsonSerializer.Serialize(Model.Item1);
+    var schemasJson = System.Text.Json.JsonSerializer.Serialize(Model.Item2);
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Program</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
+    <link href="~/css/stylesheetphaseplay.css" rel="stylesheet" />
+    <link href="https://cdn.syncfusion.com/ej2/20.2.36/material.css" rel="stylesheet">
+    <script src="https://cdn.syncfusion.com/ej2/20.2.36/dist/ej2.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popperjs/core2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Create a New Program</h1>
+        <br />
+        <form method="post" asp-action="SaveProgram" id="programForm">
+            <div class="form-group ">
+                <label for="name">Program Name:</label>
+                <input type="text" class="form-control col-3" id="name" name="Name" required>
+            </div>
+            &nbsp;&nbsp;&nbsp;
+            <div class="d-flex">
+                <div class="form-group">
+                    <label for="weeks">Number of Weeks:</label>
+                    <input type="number" class="form-control" id="weeks" name="Weeks" min="1" max="52" required oninput="updateWeekContainers()">
+                </div>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                <div class="col-4">
+                    <label for="weeks">Select Phase:</label>
+                    <ejs-dropdownlist id="PhaseSelect" dataSource="@(new List<string> { "Hypertrophy", "Basic Strength", "Strength-Power", "Speed-Strength", "Strength-Speed", "Maintenance", "Active Rest" })"
+                                      fields="@(new Syncfusion.EJ2.DropDowns.DropDownListFieldSettings { Text = "Name", Value = "Id" })">
+                    </ejs-dropdownlist>
+                </div>  
+            </div>
+            
+           
+            &nbsp;&nbsp;&nbsp;
+            <div class="form-group">
+                <label for="addNote">Note</label>
+                <textarea class="form-control col-6" id="addNote" name="AddNote"></textarea>
+            </div>
+            &nbsp;&nbsp;&nbsp;
+            <div style="padding:10px; display: flex; overflow-x: auto;" id="week-card-container">
+                <!-- Week containers will be populated here -->
+            </div>
+            <div class=" d-flex align-content-center">
+                <button type="submit" class="btn btn-primary">Save</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        const exercises = @Html.Raw(exercisesJson);
+        const schemas = @Html.Raw(schemasJson);
+
+        function updateWeekContainers() {
+            const weeksValue = document.getElementById('weeks').value;
+            const numWeeks = parseInt(weeksValue) || 0;
+            const container = document.getElementById('week-card-container');
+            container.innerHTML = ''; // Clear existing week containers
+
+            // Store references to all selects for later synchronization
+            window.weekExerciseSelects = [];
+            window.weekSchemaSelects = [];
+
+            // Filter schemas to only include week 1 schemas - THIS IS THE KEY CHANGE
+            const week1Schemas = schemas.filter(schema => schema.SetWeek === 1);
+
+            // Loop through and create a card for each week
+            for (let week = 1; week <= numWeeks; week++) {
+                const weekContainer = document.createElement('div');
+                weekContainer.className = 'week-container';
+                weekContainer.style.margin = '10px'; // Add margin to each card
+                weekContainer.style.minWidth = '450px'; // Set minimum width
+                weekContainer.style.minHeight = '500px'; // Set minimum height
+                weekContainer.innerHTML = `
+                <div class="card" style="padding:10px;">
+                    <div class="card-header">
+                        <h3>Week ${week}</h3>
+                    </div>
+
+                    <table class="table table-bordered program-table">
+                        <thead>
+                            <tr>
+                                <th class="col-6" >Exercise</th>
+                                <th class="col-6" >Schema</th>
+                            </tr>
+                        </thead>
+                        <tbody id="week-${week}-rows">
+                            <tr>
+                                <td>
+                                    <button type="button" class="btn btn-toggle-collapse" data-toggle="collapse" data-target="#exerciseTable-${week}-1">
+                                        <i class="fas fa-plus" aria-hidden="true"></i>
+                                    </button>
+                                    <select class="form-select col-md-9 exercise-select" name="Weekvm[${(week-1)*10}].ExerciseID" onchange="updateExerciseSelection(this, ${(week-1)*10}, ${week}, 1)">
+                                        ${exercises.map(exercise => `<option value="${exercise.Id}">${exercise.Name}</option>`).join('')}
+                                    </select>
+                                    ${week === 1 ? `<input type="hidden" name="Exercise" value="${exercises[0].Id}">` : ''}
+                                </td>
+                                <td>
+                                    <select class="form-select col-md-9 schema-select" name="Weekvm[${(week-1)*10}].SchemaID" id="schemaSelect-${week}-1" onchange="updateSchemaSelection(this, ${(week-1)*10}, ${week}, 1)">
+                                        ${week1Schemas.map(schema => `<option value="${schema.id}">${schema.name}</option>`).join('')}
+                                    </select>
+                                    ${week === 1 ? `<input type="hidden" name="SchemaID" value="${week1Schemas[0].id}">` : ''}
+                                    <input type="hidden" name="Weekvm[${(week-1)*10}].Week" value="${week}">
+                                </td>
+                            </tr>
+
+                            <tr id="exerciseTable-${week}-1" class="collapse">
+                                <td colspan="2">
+                                    <table class="table table-bordered">
+                                        <thead>
+                                            <tr>
+                                                <th>Reps</th>
+                                                <th>1RM</th>
+                                                <th>RPE</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <!-- Placeholder for dynamically loaded schema attributes -->
+                                        </tbody>
+                                    </table>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <button type="button" class="btn add-row-btn" onclick="addRowToWeek(${week})"><i class="fas fa-plus" aria-hidden="true"></i> Add Row</button>
+                </div>
+                `;
+                container.appendChild(weekContainer);
+
+                // Add event listener to schema select element
+                const schemaSelect = document.getElementById(`schemaSelect-${week}-1`);
+                if (schemaSelect) {
+                    // Store reference to the schema select for this week's first row
+                    if (!window.weekSchemaSelects[week]) {
+                        window.weekSchemaSelects[week] = {};
+                    }
+                    window.weekSchemaSelects[week][1] = schemaSelect;
+
+                    schemaSelect.addEventListener('change', function() {
+                        if (week === 1) {
+                            const selectedSchemaId = schemaSelect.value;
+                            document.querySelector('input[name="SchemaID"]').value = selectedSchemaId;
+                            // Synchronize this change to all other week's first schema select
+                            syncSchemaSelects(1, 1, selectedSchemaId);
+                        }
+                        updateExerciseTableId(`${week}-1`);
+                    });
+                }
+
+                // Store reference to the exercise select for this week's first row
+                const exerciseSelect = document.querySelector(`select[name="Weekvm[${(week-1)*10}].ExerciseID"]`);
+                if (exerciseSelect) {
+                    if (!window.weekExerciseSelects[week]) {
+                        window.weekExerciseSelects[week] = {};
+                    }
+                    window.weekExerciseSelects[week][1] = exerciseSelect;
+                }
+            }
+
+            // Set initial values for hidden inputs if at least one week exists
+            if (numWeeks > 0) {
+                if (document.querySelector('input[name="Exercise"]')) {
+                    document.querySelector('input[name="Exercise"]').value = exercises[0].Id;
+                }
+                if (document.querySelector('input[name="SchemaID"]')) {
+                    document.querySelector('input[name="SchemaID"]').value = schemas[0].id;
+                }
+            }
+        }
+
+        function addRowToWeek(week) {
+            const tableBody = document.getElementById(`week-${week}-rows`);
+            const rowCount = (tableBody.rows.length / 2);
+            const rowIndex = (week-1)*10 + rowCount;
+            const rowNumber = rowCount + 1;
+
+            // Filter schemas to only include week 1 schemas
+            const week1Schemas = schemas.filter(schema => schema.SetWeek === 1);
+
+            const newRow = document.createElement('tr');
+            newRow.innerHTML = `
+                <td>
+                    <button type="button" class="btn btn-toggle-collapse" data-toggle="collapse" data-target="#exerciseTable-${week}-${rowNumber}">
+                        <i class="fas fa-plus" aria-hidden="true"></i>
+                    </button>
+                    <select class="form-select col-md-9 exercise-select" name="Weekvm[${rowIndex}].ExerciseID" onchange="updateExerciseSelection(this, ${rowIndex}, ${week}, ${rowNumber})">
+                        ${exercises.map(exercise => `<option value="${exercise.Id}">${exercise.Name}</option>`).join('')}
+                    </select>
+                </td>
+                <td>
+                    <select class="form-select col-md-9 schema-select" name="Weekvm[${rowIndex}].SchemaID" id="schemaSelect-${week}-${rowNumber}" onchange="updateSchemaSelection(this, ${rowIndex}, ${week}, ${rowNumber})">
+                        ${week1Schemas.map(schema => `<option value="${schema.id}">${schema.name}</option>`).join('')}
+                    </select>
+                    <input type="hidden" name="Weekvm[${rowIndex}].Week" value="${week}">
+                </td>
+            `;
+
+            tableBody.appendChild(newRow);
+
+            const exerciseTableRow = document.createElement('tr');
+            exerciseTableRow.id = `exerciseTable-${week}-${rowNumber}`;
+            exerciseTableRow.className = 'collapse';
+            exerciseTableRow.innerHTML = `
+                <td colspan="2">
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Reps</th>
+                                <th>1RM</th>
+                                <th>RPE</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Placeholder for dynamically loaded schema attributes -->
+                        </tbody>
+                    </table>
+                </td>
+            `;
+            tableBody.appendChild(exerciseTableRow);
+
+            // Add event listener to the new schema select element
+            const schemaSelect = document.getElementById(`schemaSelect-${week}-${rowNumber}`);
+            if (schemaSelect) {
+                // Store reference to the schema select
+                if (!window.weekSchemaSelects[week]) {
+                    window.weekSchemaSelects[week] = {};
+                }
+                window.weekSchemaSelects[week][rowNumber] = schemaSelect;
+
+                schemaSelect.addEventListener('change', function() {
+                    updateExerciseTableId(`${week}-${rowNumber}`);
+
+                    // If in week 1, sync this change to the same row position in other weeks
+                    if (week === 1) {
+                        syncSchemaSelects(1, rowNumber, schemaSelect.value);
+                    }
+                });
+            }
+
+            // Store reference to the exercise select
+            const exerciseSelect = document.querySelector(`select[name="Weekvm[${rowIndex}].ExerciseID"]`);
+            if (exerciseSelect) {
+                if (!window.weekExerciseSelects[week]) {
+                    window.weekExerciseSelects[week] = {};
+                }
+                window.weekExerciseSelects[week][rowNumber] = exerciseSelect;
+
+                // If this is week 1, add the new row to all other weeks to maintain consistency
+                if (week === 1) {
+                    const numWeeks = parseInt(document.getElementById('weeks').value) || 0;
+                    for (let otherWeek = 2; otherWeek <= numWeeks; otherWeek++) {
+                        addRowToWeek(otherWeek);
+                    }
+                }
+            }
+        }
+
+        function updateExerciseSelection(select, index, week, rowNumber) {
+            // Get the selected exercise value
+            const selectedValue = select.value;
+
+            // If this is week 1, update all other weeks' corresponding rows
+            if (week === 1) {
+                // Update the hidden Exercise field if this is the first row
+                if (rowNumber === 1) {
+                    document.querySelector('input[name="Exercise"]').value = selectedValue;
+                }
+
+                // Sync this exercise selection to all other weeks' same row
+                syncExerciseSelects(week, rowNumber, selectedValue);
+            }
+        }
+
+        function updateSchemaSelection(select, index, week, rowNumber) {
+            // Get the selected schema value
+            const selectedValue = select.value;
+
+            // If this is week 1, update all other weeks' corresponding rows
+            if (week === 1) {
+                // Update the hidden SchemaID field if this is the first row
+                if (rowNumber === 1) {
+                    document.querySelector('input[name="SchemaID"]').value = selectedValue;
+                }
+
+                // Sync this schema selection to all other weeks' same row
+                syncSchemaSelects(week, rowNumber, selectedValue);
+            }
+
+            // Always update the current exercise table with schema data
+            updateExerciseTableId(`${week}-${rowNumber}`);
+        }
+
+
+        // Function to sync exercise selections across all weeks for a specific row
+        function syncExerciseSelects(sourceWeek, rowNumber, value) {
+            const numWeeks = parseInt(document.getElementById('weeks').value) || 0;
+
+            for (let week = 1; week <= numWeeks; week++) {
+                // Skip the source week
+                if (week === sourceWeek) continue;
+
+                // Find and update the corresponding select in this week
+                if (window.weekExerciseSelects[week] && window.weekExerciseSelects[week][rowNumber]) {
+                    window.weekExerciseSelects[week][rowNumber].value = value;
+                }
+            }
+        }
+
+        function syncSchemaSelects(sourceWeek, rowNumber, value) {
+            const numWeeks = parseInt(document.getElementById('weeks').value) || 0;
+
+            for (let week = 1; week <= numWeeks; week++) {
+                // Skip the source week
+                if (week === sourceWeek) continue;
+
+                // Find and update the corresponding select in this week
+                if (window.weekSchemaSelects[week] && window.weekSchemaSelects[week][rowNumber]) {
+                    // Set the same schema ID for all weeks
+                    window.weekSchemaSelects[week][rowNumber].value = value;
+
+                    // But when loading schema details, find the correct week-specific schema
+                    const selectedSchema = schemas.find(s => s.id == value);
+                    if (selectedSchema) {
+                        // Find the corresponding schema for this week
+                        const weekSpecificSchema = schemas.find(s =>
+                            s.name === selectedSchema.name &&
+                            s.SetWeek === week
+                        );
+
+                        if (weekSpecificSchema) {
+                            // Update the exercise table with the week-specific schema data
+                            const weekRowId = `${week}-${rowNumber}`;
+                            loadSchemaDetails(weekRowId, weekSpecificSchema.id);
+                        } else {
+                            // If no week-specific schema found, use the selected schema from week 1
+                            const weekRowId = `${week}-${rowNumber}`;
+                            loadSchemaDetails(weekRowId, value);
+                        }
+                    }
+                }
+            }
+        }
+
+
+
+        // For backward compatibility
+        function addRow() {
+            // For backward compatibility, add a row to the first week
+            addRowToWeek(1);
+        }
+
+        // Keep any existing functionalities
+        function updateAllWeeks(type, value) {
+            if (type === 'exercise') {
+                document.querySelector('input[name="Exercise"]').value = value;
+                // Sync this to all weeks, first row
+                syncExerciseSelects(1, 1, value);
+            } else if (type === 'schema') {
+                document.querySelector('input[name="SchemaID"]').value = value;
+                // Sync this to all weeks, first row
+                syncSchemaSelects(1, 1, value);
+                updateExerciseTableId(`1-1`);
+            }
+        }
+
+        // Initialize schema details on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            updateWeekContainers(); // Initialize the container on page load
+
+            // Add click event listener for toggle buttons
+            const programsContainer = document.getElementById('week-card-container');
+            if (programsContainer) {
+                programsContainer.addEventListener('click', function(event) {
+                    const target = event.target.closest('button');
+                    if (target && target.classList.contains('btn-toggle-collapse')) {
+                        toggleAriaExpanded(target);
+                    }
+                });
+            }
+
+            // Load initial schema details for the first row of the first week
+            setTimeout(() => {
+                const firstSchemaSelect = document.getElementById('schemaSelect-1-1');
+                if (firstSchemaSelect) {
+                    loadSchemaDetails('1-1', firstSchemaSelect.value);
+                }
+            }, 500);
+
+            // Add submit event handler to ensure proper form submission
+            document.getElementById('programForm').addEventListener('submit', function(event) {
+                // Set Exercise and SchemaID from the first row if they're not already set
+                const firstExerciseSelect = document.querySelector('select[name="Weekvm[0].ExerciseID"]');
+                const firstSchemaSelect = document.querySelector('select[name="Weekvm[0].SchemaID"]');
+
+                if (firstExerciseSelect && firstSchemaSelect) {
+                    document.querySelector('input[name="Exercise"]').value = firstExerciseSelect.value;
+                    document.querySelector('input[name="SchemaID"]').value = firstSchemaSelect.value;
+                }
+            });
+        });
+
+        function toggleAriaExpanded(button) {
+            const isExpanded = button.getAttribute('aria-expanded') === 'true';
+            button.setAttribute('aria-expanded', String(!isExpanded));
+
+            const targetId = button.getAttribute('data-target').substring(1);
+            const targetTable = document.getElementById(targetId);
+
+            if (targetTable) {
+                // Toggle the 'show' class to display/hide the table
+                targetTable.classList.toggle('show');
+
+                // If we're showing the table, make sure schema details are loaded
+                if (!isExpanded) {
+                    // Extract week and row number from target ID
+                    const idParts = targetId.split('-');
+                    if (idParts.length >= 3) {
+                        const week = idParts[1];
+                        const row = idParts[2];
+                        const weekRowId = `${week}-${row}`;
+
+                        // Load schema details for this table if not already loaded
+                        const tbody = targetTable.querySelector('tbody');
+                        if (tbody && tbody.children.length === 0) {
+                            const schemaSelect = document.getElementById(`schemaSelect-${weekRowId}`);
+                            if (schemaSelect) {
+                                // Load schema details for this specific week-row combination
+                                loadSchemaDetails(weekRowId, schemaSelect.value);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // New function to load schema details for a specific week-row combination
+        function loadSchemaDetails(weekRowId, schemaId) {
+            console.log(`Loading schema details for week-row: ${weekRowId}, schema: ${schemaId}`);
+
+            // Fetch schema data from the server
+            fetch(`/api/Schema/${schemaId}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Fetched schema data:', data);
+
+                    // Get the target table
+                    const targetTableId = `exerciseTable-${weekRowId}`;
+                    const targetTable = document.getElementById(targetTableId);
+
+                    if (targetTable) {
+                        // Get tbody element and clear it
+                        const tbody = targetTable.querySelector('tbody');
+                        if (tbody) {
+                            tbody.innerHTML = '';
+
+                            // Populate with schema data
+                            data.forEach(setAttrib => {
+                                const row = document.createElement('tr');
+                                row.innerHTML = `
+                                    <td>${setAttrib.reps}</td>
+                                    <td>${setAttrib.percentRM}</td>
+                                    <td>${setAttrib.rpe}</td>
+
+                                `;
+                                tbody.appendChild(row);
+                            });
+                        }
+                    }
+                })
+                .catch(error => console.error(`Error loading schema details for ${weekRowId}:`, error));
+        }
+
+        function updateExerciseTableId(weekRowId) {
+            // Get the selected schema ID
+            const schemaSelect = document.getElementById(`schemaSelect-${weekRowId}`);
+            if (!schemaSelect) return;
+
+            const selectedSchemaId = schemaSelect.value;
+            console.log(`Selected Schema ID: ${selectedSchemaId}`);
+
+            // Extract week from weekRowId
+            const weekParts = weekRowId.split('-');
+            const week = parseInt(weekParts[0]);
+
+            // Find the selected schema
+            const selectedSchema = schemas.find(s => s.id == selectedSchemaId);
+
+            // If we found it, check for a week-specific version
+            let schemaToLoad = selectedSchemaId;
+            if (selectedSchema) {
+                // Try to find a schema with same name for this specific week
+                const weekSpecificSchema = schemas.find(s =>
+                    s.name === selectedSchema.name &&
+                    s.SetWeek === week
+                );
+
+                if (weekSpecificSchema) {
+                    schemaToLoad = weekSpecificSchema.id;
+                }
+            }
+
+            // Fetch schema data from the server using the determined schema ID
+            fetch(`/api/Schema/${schemaToLoad}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Fetched schema data:', data);
+
+                    // Populate the table for the selected week
+                    const targetTableId = `exerciseTable-${weekRowId}`;
+                    console.log(`Target Table ID: ${targetTableId}`);
+
+                    // Get the target table element by ID
+                    const targetTable = document.getElementById(targetTableId);
+                    if (targetTable) {
+                        console.log('Target table found');
+
+                        // Get the tbody element of the target table
+                        const tbody = targetTable.querySelector('tbody');
+                        if (tbody) {
+                            // Clear the existing rows in the tbody
+                            tbody.innerHTML = '';
+
+                            // Iterate over the fetched schema data and create new rows
+                            data.forEach(setAttrib => {
+                                const row = document.createElement('tr');
+                                row.innerHTML = `
+                                    <td>${setAttrib.reps}</td>
+                                    <td>${setAttrib.percentRM}</td>
+                                    <td>${setAttrib.rpe}</td>
+                                `;
+                                // Append the new row to the tbody
+                                tbody.appendChild(row);
+                            });
+
+                            // Show the target table by adding the 'show' class
+                            targetTable.classList.add('show');
+                        }
+                    } else {
+                        console.error('Target table not found');
+                    }
+                })
+                .catch(error => console.error('Error fetching schema data:', error));
+        }
+    </script>
+</body>
+</html>

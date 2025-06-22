@@ -1,0 +1,926 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+    ViewData["Title"] = "Athlete Dashboard";
+}
+@using PhasePlayWeb.Data;
+@model (List<PhasePlayWeb.Models.Entities.Event> events, Tuple<List<PhasePlayWeb.Models.AthleteViewProgrammeView>, List<PhasePlayWeb.Models.PastProgramView>, List<PhasePlayWeb.Models.Entities.SessionHistory>, List<PhasePlayWeb.Models.PastProgramView>> programs)
+@inject PhasePlayWeb.Data.ApplicationDbContext _context
+
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Progress Dashboard</title>
+    <link href="~/css/stylesheetphaseplay.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <link href="https://cdn.syncfusion.com/ej2/20.2.36/material.css" rel="stylesheet">
+    <script src="https://cdn.syncfusion.com/ej2/20.2.36/dist/ej2.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.21/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.21/js/dataTables.bootstrap4.min.js"></script>
+    <!-- Add this at the beginning of your page -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+
+    <style>
+        @@media (max-width: 768px) {
+            /* Make axis labels more readable */
+            #weightProgressionChart text {
+                font-size: 10px !important;
+            }
+
+            #weightProgressionChart {
+                min-height: 250px !important;
+                margin: 0 !important; /* Remove the negative margins */
+                padding-bottom: 20px !important; /* Add padding at bottom */
+            }
+            /* Improve axis labels */
+            .e-charts .e-chart-axis-label {
+                font-size: 8px !important;
+            }
+
+            .card {
+                height: auto;
+                padding: 10px;
+            }
+
+            .card h5, .card h6 {
+                text-align:center;
+            }
+
+            .modal-dialog {
+                margin: 0;
+            }
+
+            .modal-content {
+                height: 100vh;
+            }
+
+            .modal-body {
+                overflow-y: auto;
+                padding-bottom: 40px !important;
+            }
+
+            .col-md-4 {
+                margin-bottom: 20px;
+            }
+
+            #weightProgressionChart {
+                min-height: 250px !important;
+                margin: 0 -15px; /* Extend to full width */
+            }
+            /* Make the exercise detail modal fullscreen on mobile */
+            #exerciseDetailModal .modal-dialog {
+                margin: 0;
+                max-width: 100%;
+                height: 100%;
+            }
+
+            /* Make better use of modal space */
+            #exerciseDetailModal .modal-body {
+                padding: 10px;
+                overflow-y: hidden !important; /* Keep the modal body from scrolling on mobile */
+            }
+
+            #exerciseDetailModal .modal-content {
+                height: 100%;
+                border-radius: 0;
+            }
+            /* Adjust chart padding on mobile */
+            .e-chart {
+                padding: 5px !important;
+                overflow: visible !important;
+            }
+
+            .chart-container {
+                max-height: 250px;
+            }
+        }
+
+        .section-card {
+            min-height: 200px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .modal-lg {
+            max-width: 800px;
+        }
+
+        .stat-card {
+            padding: 8px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            background-color: #f8f9fa;
+            text-align: center;
+        }
+
+            .stat-card h6 {
+                color: #6c757d;
+                margin-bottom: 10px;
+            }
+
+            .stat-card h2 {
+                font-size: 1.2rem;
+                color: #343a40;
+                margin: 0;
+            }
+
+        /* Add responsive chart styling */
+        #weightProgressionChart {
+            width: 100%;
+            min-height: 300px;
+            overflow: visible;
+        }
+
+
+        .chart-container {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 15px;
+        }
+
+        .modal-body {
+            overflow-y: hidden !important; /* Override the auto scroll for the entire modal body */
+        }
+
+    </style>
+
+</head>
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <h2 style="font-family:'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;font-weight:bold;">Welcome, @ViewData["UserName"]</h2>
+                <div class="row">
+                    <div class="row mt-4">
+                        <!-- Active Workouts Section -->
+                        <div class="col-md-4">
+                            <div class="d-flex align-items-center">
+                                <h4>Todays Workouts</h4>
+                                &nbsp;&nbsp;
+                                @if (Model.programs.Item1.Count > 1)
+                                {
+                                    <i class="fas fa-arrow-right" style="font-size: 20px; cursor: pointer;" data-toggle="modal" data-target="#activeProgramsModal"></i>
+                                }
+                            </div>
+                            <div  style="background-color:#F7F7F7;">
+                                @if (Model.programs.Item1.Count == 0)
+                                {
+                                    <div class="card" style="height: 100px; padding-top:10px;background-color:white; overflow: hidden;">
+                                        <div class="d-flex justify-content-center align-items-center" style="height: 100px;">
+                                            <h6>You currently have no workouts for today</h6>
+                                        </div>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <!-- Display only the first card -->
+                                    var firstActiveProgram = Model.programs.Item1.FirstOrDefault();
+                                    <div class="card justify-content-center" onclick="location.href='@Url.Action("ProgramView", "AthleteViews", new { programid = firstActiveProgram.programmeId, GroupProgramID = firstActiveProgram.GroupProgrammeId, GroupSessionID = firstActiveProgram.GroupSessionID, IscatchUp = false })'" style="cursor: pointer; height: 100px; padding-top:10px;background-color:white">
+                                        <h5>
+                                            @(firstActiveProgram.Name.Length > 15 ? firstActiveProgram.Name.Substring(0, 15) + "..." : firstActiveProgram.Name)
+                                        </h5>
+                                        <h6>Week: @firstActiveProgram.WeekOfProgramme</h6>
+                                        <h6>@String.Format("{0:dd/MM/yy}", firstActiveProgram.NextSessionDate)</h6>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+
+                        <!-- Missed Workouts Section -->
+                        <div class="col-md-4">
+                            <div class="d-flex align-items-center">
+                                <h4>Missed Workouts</h4>
+                                &nbsp;&nbsp;
+                                @if (Model.programs.Item4.Count > 1)
+                                {
+                                    <i class="fas fa-arrow-right" style="font-size: 20px; cursor: pointer;" data-toggle="modal" data-target="#missedProgramsModal"></i>
+                                }
+                            </div>
+                            
+                            <div style="background-color:#F7F7F7;">
+                                @if (Model.programs.Item4.Count == 0)
+                                {
+                                    <div class="card justify-content-center" style="height: 100px; padding-top:10px;background-color:white">
+                                        <h5>There are no missed programs</h5>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <!-- Display only the first card -->
+                                    var firstMissedProgram = Model.programs.Item4.FirstOrDefault();
+                                    <div class="card justify-content-center" onclick="location.href='@Url.Action("ProgramView", "AthleteViews", new { programid = firstMissedProgram.ProgramId, GroupProgramID = firstMissedProgram.GroupProgrammeID, GroupSessionID = firstMissedProgram.GroupSessionID, IscatchUp = true })'" style="cursor: pointer; height: 100px; padding-top:10px;background-color:white">
+                                        <h5>
+                                            @(firstMissedProgram.ProgramName.Length > 15 ? firstMissedProgram.ProgramName.Substring(0, 15) + "..." : firstMissedProgram.ProgramName)
+                                        </h5>
+                                        <h6>Week: @firstMissedProgram.Week</h6>
+                                        <h6>@String.Format("{0:dd/MM/yy}", firstMissedProgram.DateAssigned)</h6>
+                                    </div>
+
+                                    
+                                }
+                            </div>
+                        </div>
+
+                        <!-- Workout History Section -->
+                        <div class="col-md-4">
+                            <div class="d-flex align-items-center">
+                                <h4>Workout History</h4>
+                                &nbsp;&nbsp;
+                                @if (Model.programs.Item2.Count > 1)
+                                {
+                                    <i class="fas fa-arrow-right" style="font-size: 20px; cursor: pointer; " data-toggle="modal" data-target="#programHistoryModal"></i>
+                                }
+                            </div>
+                            
+                            <div style="background-color:#F7F7F7;">
+                                @if (Model.programs.Item2.Count == 0)
+                                {
+                                    <div class="card justify-content-center" style="height: 100px; padding-top:10px;background-color:white">
+                                        <h5>There is no program history</h5>
+                                    </div>
+                                }
+                                else
+                                {
+                                    var list = Model.programs.Item2.OrderByDescending(x => x.DateCompleted).ToList();
+                                    var firstHistoryProgram = list.FirstOrDefault();
+                                    var i = list.IndexOf(firstHistoryProgram);
+
+                                    <div class="card justify-content-center" data-toggle="modal" data-target="#programHistoryDetailsModal_@i" style="cursor: pointer; height: 100px; padding-top:20px;background-color:white">
+                                        <h5>
+                                            @(firstHistoryProgram.ProgramName.Length > 15 ? firstHistoryProgram.ProgramName.Substring(0, 15) + "..." : firstHistoryProgram.ProgramName)
+                                        </h5>
+                                        <h6>Week: @firstHistoryProgram.Week</h6>
+                                    </div>
+
+                                    
+                                }
+                            </div>
+                        </div>
+
+                        <!-- Exercise Analytics -->
+                        <div class="col-md-4">
+                            @{
+                                var allExercises = Model.programs.Item3
+                                .GroupBy(x => new { x.ExcerciseID, x.ExcerciseName })
+                                .Select(g => new
+                                {
+                                    ExerciseId = g.Key.ExcerciseID,
+                                    ExerciseName = g.Key.ExcerciseName,
+                                    Count = g.Count(),
+                                    MaxWeight = g.Max(x => x.WeightUsed),
+                                    LastUsed = g.Max(x => x.DateCompleted)
+                                })
+                                .OrderByDescending(x => x.Count)
+                                .ToList();
+                            }
+
+                            <div class="d-flex align-items-center">
+                                <h4>Exercise Analytics</h4>
+                                &nbsp;&nbsp;
+                                @if (allExercises != null && allExercises.Count() > 1)
+                                {
+                                    <i class="fas fa-arrow-right" style="font-size: 20px; cursor: pointer;" data-toggle="modal" data-target="#exerciseAnalyticsModal"></i>
+                                }
+                            </div>
+
+                            <div style="background-color:#F7F7F7;">
+                                
+
+                                @if (!allExercises.Any())
+                                {
+                                    <div class="card justify-content-center" style="height: 100px; padding-top:10px;background-color:white">
+                                        <h5 class="text-center">No exercise data available</h5>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <!-- Display only the first exercise card -->
+                                    var firstExercise = allExercises.FirstOrDefault();
+                                    <div class="card justify-content-center exercise-card"
+                                         onclick="showExerciseAnalytics(@firstExercise.ExerciseId)"
+                                         style="cursor: pointer; height: 120px; padding:15px; background-color:white">
+                                        <h5>@firstExercise.ExerciseName</h5>
+                                        <div>
+                                            <h6>PR: @(firstExercise.MaxWeight?.ToString("0.##") ?? "0") kg</h6>
+                                        </div>
+                                        <div>
+                                            <h6>Last: @(firstExercise.LastUsed?.ToString("dd/MM/yy") ?? "N/A")</h6>
+                                        </div>
+                                    </div>
+
+                                }
+                            </div>
+                        </div>
+
+                        <!-- Exercise Analytics Modal -->
+                        @if (allExercises != null && allExercises.Count > 1)
+                        {
+                            <div class="modal fade" id="exerciseAnalyticsModal" tabindex="-1" role="dialog" aria-labelledby="exerciseAnalyticsModalLabel" aria-hidden="true">
+                                <div class="modal-dialog modal-lg" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="exerciseAnalyticsModalLabel">Exercise Analytics</h5>
+                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                <span aria-hidden="true">&times;</span>
+                                            </button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <div class="row">
+                                                @foreach (var exercise in allExercises.Skip(1)) // Skip the first one that's already displayed
+                                                {
+                                                    <div class="col-md-6 col-lg-4 mb-3">
+                                                        <div class="card justify-content-center exercise-card"
+                                                             onclick="showExerciseAnalytics(@exercise.ExerciseId)"
+                                                             data-exercise-id="@exercise.ExerciseId"
+                                                             style="cursor: pointer; height: 120px; padding:15px; background-color:white">
+                                                            <h5>@exercise.ExerciseName</h5>
+                                                            <div>
+                                                                <h6>PR: @(exercise.MaxWeight?.ToString("0.##") ?? "0") kg</h6>
+                                                            </div>
+                                                            <div>
+                                                                <h6>Last: @(exercise.LastUsed?.ToString("dd/MM/yy") ?? "N/A")</h6>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+
+
+                        <div>
+                            <h6 style="margin-top:10px;text-align:center;">View your upcoming events below</h6>
+                            <div class="col-12" style="margin-top:20px;">
+                                <div id="scheduler"></div>
+                            </div>
+                        </div> 
+                    </div>
+
+                    <!-- Modals for showing all cards -->
+                    <!-- Active Programs Modal -->
+                    @if (Model.programs.Item1.Count > 1)
+                    {
+                        <div class="modal fade" id="activeProgramsModal" tabindex="-1" role="dialog" aria-labelledby="activeProgramsModalLabel" aria-hidden="true">
+                            <div class="modal-dialog modal-lg" role="document">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="activeProgramsModalLabel">Active Programs</h5>
+                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="row">
+                                            @foreach (var item in Model.programs.Item1) // Skip the first one that's already displayed
+                                            {
+                                                <div class="col-md-6 col-lg-4 mb-3">
+                                                    <div class="card justify-content-center" onclick="location.href='@Url.Action("ProgramView", "AthleteViews", new { programid = item.programmeId, GroupProgramID = item.GroupProgrammeId, GroupSessionID = item.GroupSessionID, IscatchUp = false })'" style="cursor: pointer; height: 100px; padding-top:10px;background-color:white">
+                                                        <h5>
+                                                            @(item.Name.Length > 15 ? item.Name.Substring(0, 15) + "..." : item.Name)
+                                                        </h5>
+                                                        <h6>Week: @item.WeekOfProgramme</h6>
+                                                        <h6>@String.Format("{0:dd/MM/yy}", item.NextSessionDate)</h6>
+                                                    </div>
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                    <!-- Missed Programs Modal -->
+                    @if (Model.programs.Item4.Count > 1)
+                    {
+                        <div class="modal fade" id="missedProgramsModal" tabindex="-1" role="dialog" aria-labelledby="missedProgramsModalLabel" aria-hidden="true">
+                            <div class="modal-dialog modal-lg" role="document">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="missedProgramsModalLabel">Missed Programs</h5>
+                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="row">
+                                            @foreach (var item in Model.programs.Item4) // Skip the first one that's already displayed
+                                            {
+                                                <div class="col-md-6 col-lg-4 mb-3">
+                                                    <div class="card justify-content-center" onclick="location.href='@Url.Action("ProgramView", "AthleteViews", new { programid = item.ProgramId, GroupProgramID = item.GroupProgrammeID, GroupSessionID = item.GroupSessionID, IscatchUp = true })'" style="cursor: pointer; height: 100px; padding-top:10px;background-color:white">
+                                                        <h5>
+                                                            @(item.ProgramName.Length > 15 ? item.ProgramName.Substring(0, 15) + "..." : item.ProgramName)
+                                                        </h5>
+                                                        <h6>Week: @item.Week</h6>
+                                                        <h6>@String.Format("{0:dd/MM/yy}", item.DateAssigned)</h6>
+                                                    </div>
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                    <!-- Program History Modal -->
+                    @if (Model.programs.Item2.Count > 1)
+                    {
+                        <div class="modal fade" id="programHistoryModal" tabindex="-1" role="dialog" aria-labelledby="programHistoryModalLabel" aria-hidden="true">
+                            <div class="modal-dialog modal-lg" role="document">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="programHistoryModalLabel">Program History</h5>
+                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="row">
+                                            @{
+                                                var list = Model.programs.Item2.OrderByDescending(x => x.DateCompleted).ToList();
+                                            }
+                                            @foreach (var orderedItem in list) // Skip the first one that's already displayed
+                                            {
+                                                var i = list.IndexOf(orderedItem);
+                                                <div class="col-md-6 col-lg-4 mb-3">
+                                                    <div class="card justify-content-center" data-toggle="modal" data-target="#programHistoryDetailsModal_@i" data-dismiss="modal" style="cursor: pointer; height: 100px; padding-top:20px;background-color:white">
+                                                        <h5>
+                                                            @(orderedItem.ProgramName.Length > 15 ? orderedItem.ProgramName.Substring(0, 15) + "..." : orderedItem.ProgramName)
+                                                        </h5>
+                                                        <h6>Week: @orderedItem.Week</h6>
+                                                    </div>
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <!--Modal to View Chart Data-->
+                <!-- Exercise Analytics Detail Modal -->
+                <div class="modal fade" id="exerciseDetailModal" tabindex="-1" role="dialog" aria-labelledby="exerciseDetailModalLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-lg" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="exerciseDetailModalLabel">Exercise Analytics</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="row mb-4">
+                                    <div class="col-md-12">
+                                        <h3 id="exerciseName" class="text-center mb-4"></h3>
+                                    </div>
+                                </div>
+
+                                <!-- Stats Cards -->
+                                <div class="row mb-4">
+                                    <div class="col-md-4">
+                                        <div class="stat-card">
+                                            <h6>PERSONAL RECORD</h6>
+                                            <h2 id="maxWeight">0 kg</h2>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="stat-card">
+                                            <h6>AVERAGE WEIGHT</h6>
+                                            <h2 id="avgWeight">0 kg</h2>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="stat-card">
+                                            <h6>TOTAL SESSIONS</h6>
+                                            <h2 id="sessionCount">0</h2>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Weight Progression Chart -->
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <!-- Add this chart-container div to create a scrollable area just for the chart -->
+                                        <div class="chart-container">
+                                            <div id="weightProgressionChart"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                @for (var i = 0; i < Model.programs.Item2.Count; i++)
+                {
+                    var item = Model.programs.Item2[i];
+                    var history = Model.programs.Item3.Where(x => x.UserId == item.UserID && x.ProgramID == item.ProgramId && x.DateAssigned == item.DateAssigned && x.GroupProgrammeId == item.GroupID).ToList();
+                    var list = Model.programs.Item2.OrderByDescending(x => x.DateCompleted).ToList();
+                    var orderedItem = list[i];
+
+                    List<int> exerciseIds = new List<int>();
+                    foreach (var exerciseSet in history)
+                    {
+                        if (!exerciseIds.Contains(exerciseSet.ExcerciseID))
+                        {
+                            exerciseIds.Add(exerciseSet.ExcerciseID);
+                        }
+                    }
+
+                    <!-- Modal to view Workout Details -->
+                    <div class="modal fade" id="programHistoryDetailsModal_@i" tabindex="-1" role="dialog" aria-labelledby="programHistoryDetailsModalLabel_@i" aria-hidden="true">
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="card col-md-9" style="padding:10px;">
+                                        <div class="d-inline-flex flex-column" style="padding:10px;">
+                                            <div class="mb-3" style="font:bold">
+                                                <h3> @(orderedItem.ProgramName.Length > 15 ? orderedItem.ProgramName.Substring(0, 15) + "..." : orderedItem.ProgramName)</h3>
+                                            </div>
+
+                                            <div class="mb-3" style="font:bold">
+                                                <h5>Phase: @orderedItem.Phase</h5>
+                                            </div>
+
+                                            <div class="mb-3">
+                                                <h5>Date Completed: @String.Format("{0:dd/MM/yy}", @orderedItem.DateCompleted)</h5>
+                                            </div>
+
+                                            <div class="mb-3">
+                                                <h5>Week: @orderedItem.Week</h5>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="card col-12">
+                                        @foreach (var ex in exerciseIds)
+                                        {
+                                            var name = _context.Excercises.FirstOrDefault(x => x.Id == ex);
+                                            var sessions = history.Where(x => x.ExcerciseID == ex).ToList();
+
+                                            <div class="d-inline-flex " style="justify-content:space-between;padding:10px;">
+                                                <h4 class="text-center">@name.Name</h4>
+                                            </div>
+                                            <table class="display table">
+                                                <thead class="thead-light">
+                                                    <tr>
+                                                        <th>Set</th>
+                                                        <th>Reps</th>
+                                                        <th>Done</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @for (int j = 0; j < sessions.Count; j++)
+                                                    {
+                                                        var ses = sessions[j];
+                                                        <tr>
+                                                            <td>
+                                                                @(j + 1)<br />
+                                                                <span style="font-size: 12px; color: dimgray;">@ses.RM%</span>
+                                                            </td>
+                                                            <td>@ses.reps</td>
+                                                            <td>@ses.WeightUsed</td>
+                                                        </tr>
+                                                    }
+                                                </tbody>
+                                            </table>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Explicitly include Bootstrap JavaScript if needed -->
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            var events = @Html.Raw(Json.Serialize(Model.events));
+            var scheduleObj = new ej.schedule.Schedule({
+                height: '550px',
+                views: ['Agenda', 'Day', 'Week'],
+                currentView: 'Agenda',
+                selectedDate: new Date(),
+                showQuickInfo: true,  // Enable quick info popup
+                allowEditing: false,
+                allowDeleting: false,
+
+                // New styling options
+                cssClass: 'custom-schedule',
+                dateHeaderTemplate: '${date.getDate()}',
+                timeScale: { enable: true, interval: 60, slotCount: 1 },
+
+                // Customizing event template
+                eventSettings: {
+                    dataSource: events
+                        .filter(event => !event.isCompleted) // Filter out completed events
+                        .map(event => ({
+                            Id: event.id,
+                            Subject: event.subject,
+                            StartTime: new Date(event.startTime),
+                            EndTime: new Date(event.endTime),
+                            IsAllDay: event.isAllDay,
+                            RecurrenceRule: event.recurrenceRule || ''
+                        })),
+                    colorField: 'Color',
+                    enableTooltip: true,
+                    tooltipTemplate: '${Subject}'
+                },
+
+                // Enhanced navigation
+                dataBound: function() {
+                    console.log('Calendar loaded successfully');
+                },
+
+                // Customize the quick info popup
+                quickInfoTemplates: {
+                    content: "#eventContent"
+                },
+
+                // Updated eventClick function in AthleteDashboard.cshtml
+                eventClick: function(args) {
+                    // Get the clicked event details
+                    var eventObj = args.event;
+
+                    // Navigate directly to the event detail page
+                    window.location.href = '/AthleteViews/EventDetail/' + eventObj.Id;
+
+                    // Cancel the default quick info popup
+                    args.cancel = true;
+                },
+
+                // Customize popup behavior
+                popupOpen: function (args) {
+                    if (args.type === 'Editor') {
+                        args.cancel = true;  // Cancel the edit popup
+                    }
+                    else if (args.type === 'QuickInfo') {
+                        // Find the View button and add our custom URL
+                        setTimeout(function() {
+                            var viewButton = document.querySelector('.e-event-details .e-quick-popup-wrapper .e-event-details');
+                            if (viewButton) {
+                                // Replace with a button that links to event details
+                                var eventId = args.data.Id;
+                                var detailsButton = document.createElement('button');
+                                detailsButton.className = 'e-event-details e-text-ellipsis e-btn e-flat e-primary';
+                                detailsButton.textContent = 'View Details';
+                                detailsButton.onclick = function() {
+                                    window.location.href = '/AthleteViews/EventDetail/' + eventId;
+                                };
+
+                                viewButton.parentNode.replaceChild(detailsButton, viewButton);
+                            }
+                        }, 0);
+                    }
+                }
+            });
+            scheduleObj.appendTo('#scheduler');
+        });
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var dateRangePicker = new ej.calendars.DateRangePicker({
+                placeholder: 'Select a date range'
+            });
+            dateRangePicker.appendTo('#dateRangePicker');
+        });
+    </script>
+
+    <!-- Updated template for event quick info -->
+    <script id="eventContent" type="text/x-template">
+        <div class="event-content">
+            <div class="event-subject">${Subject}</div>
+            <div class="event-time">
+                ${getDateTimeString(data.StartTime)} - ${getDateTimeString(data.EndTime)}
+            </div>
+            <a href="/AthleteViews/EventDetail/${Id}" class="view-details-btn">View Workout</a>
+        </div>
+    </script>
+
+    <script>
+        function getDateTimeString(date) {
+            return new Date(date).toLocaleString();
+        }
+    </script>
+
+    <script>
+        // Function to show exercise analytics modal
+        function showExerciseAnalytics(exerciseId) {
+            // Clear previous chart if any
+            $("#weightProgressionChart").empty();
+
+            // Show the modal
+            $("#exerciseDetailModal").modal("show");
+
+            // Add this line to ensure chart container is properly sized
+            $("#exerciseDetailModal").on('shown.bs.modal', function() {
+                var isMobile = window.innerWidth < 768;
+
+                // Apply better mobile modal sizing
+                if (isMobile) {
+                    $("#weightProgressionChart").css({
+                        'height': '250px',
+                        'width': '100%',
+                        'margin-bottom': '10px',
+                        'overflow': 'visible' // Changed from 'hidden' to prevent cutoff
+                    });
+
+                    // Ensure chart container has proper overflow
+                    $(".chart-container").css('overflow-y', 'auto');
+
+                    // Make modal body not scrollable
+                    $(".modal-body").css('overflow-y', 'hidden');
+                } else {
+                    $("#weightProgressionChart").css({
+                        'height': '300px',
+                        'width': '100%',
+                        'overflow': 'visible'
+                    });
+                }
+            });
+
+            // Fetch exercise analytics data with month period parameter
+            $.ajax({
+                url: "@Url.Action("GetExerciseAnalytics", "AthleteViews")",
+                type: "GET",
+                data: {
+                    exerciseId: exerciseId,
+                    period: "month"  // Set to "month" to get 30 days of data
+                },
+                success: function(data) {
+                    if(data.error) {
+                        console.error("Error:", data.error);
+                        return;
+                    }
+
+                    // Update modal with exercise data
+                    $("#exerciseName").text(data.exerciseName);
+                    $("#maxWeight").text(data.maxWeight + " kg");
+                    $("#avgWeight").text(data.avgWeight + " kg");
+                    $("#sessionCount").text(data.sessions);
+
+                    // Create the chart if we have data
+                    if(data.progressData && data.progressData.length > 0) {
+                        createWeightProgressionChart(data.progressData);
+                    } else {
+                        $("#weightProgressionChart").html("<p class='text-center'>No progression data available for this exercise.</p>");
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error("AJAX Error:", error);
+                    $("#weightProgressionChart").html("<p class='text-center text-danger'>Failed to load exercise data.</p>");
+                }
+            });
+        }
+
+                // Function to create the weight progression chart
+        function createWeightProgressionChart(data) {
+            // Group data by date and find maximum weight for each date
+            var groupedData = {};
+
+            data.forEach(function(item) {
+                // Extract just the date part (without time)
+                var dateStr = new Date(item.x).toISOString().split('T')[0];
+
+                // Update the max weight for this date if current value is higher
+                if (!groupedData[dateStr] || item.y > groupedData[dateStr]) {
+                    groupedData[dateStr] = item.y;
+                }
+            });
+
+            // Convert grouped data back to array format for chart
+            var chartData = Object.keys(groupedData).map(function(dateStr) {
+                return {
+                    x: new Date(dateStr),
+                    y: groupedData[dateStr]
+                };
+            }).sort(function(a, b) {
+                return a.x - b.x;  // Sort by date ascending
+            });
+
+            // Remove any existing title elements before adding a new one
+            $('.chart-period-title').remove();
+
+            // Add a title element to show the date range
+            var titleElement = document.createElement('div');
+            titleElement.className = 'text-center mb-3 chart-period-title';
+            titleElement.innerHTML = '<h6>Showing last 30 days</h6>';
+            $('#weightProgressionChart').before(titleElement);
+
+            // Mobile-specific adjustments
+            var isMobile = window.innerWidth < 768;
+
+            // Create the chart with improved mobile responsiveness
+            var chart = new ej.charts.Chart({
+                primaryXAxis: {
+                    valueType: 'DateTime',
+                    labelFormat: 'MMM dd',
+                    labelRotation: isMobile ? 45 : 0,
+                    edgeLabelPlacement: 'Shift',
+                    // Improve label visibility on mobile
+                    labelStyle: {
+                        size: isMobile ? '8px' : '12px'
+                    }
+                },
+                primaryYAxis: {
+                    minimum: 0,
+                    // Use smaller intervals on mobile for better fit
+                    interval: isMobile ? 50 : 50,
+                    labelStyle: {
+                        size: isMobile ? '8px' : '12px'
+                    }
+                },
+                // Adjusted chart size settings for better mobile display
+                height: isMobile ? '250px' : '100%',
+                width: '100%',
+                // Fix margin overflow on mobile
+                margin: isMobile ?
+                    { left: 25, right: 5, top: 10, bottom: 40 } :
+                    { left: 40, right: 40, top: 20, bottom: 40 },
+                series: [
+                    {
+                        type: 'Line',
+                        dataSource: chartData,
+                        xName: 'x',
+                        yName: 'y',
+                        width: 2,
+                        marker: {
+                                    visible: true,
+                                    width: isMobile ? 10 : 14,  // Increased from 5/7 to 8/12
+                                    height: isMobile ? 10 : 14, // Increased from 5/7 to 8/12
+                                    border: { width: 2, color: '#509ee3' } // Added border for better visibility
+                                },
+                        name: 'Max Weight',
+                        connectNullPoints: true,
+                        emptyPointSettings: { mode: 'Connect' }
+                    }
+                ],
+                tooltip: {
+                    enable: true,
+                    format: '${point.x}: ${point.y} kg',
+                    textStyle: {
+                        size: '14px',
+                        fontWeight: 'bold'
+                    }
+                },
+                legendSettings: {
+                    visible: false
+                },
+                // Improve chart load time and rendering
+                enableAnimation: false,
+                theme: 'Material'
+            });
+
+            chart.appendTo('#weightProgressionChart');
+
+            // Adjust chart when window is resized
+            window.addEventListener('resize', function() {
+                chart.refresh();
+            });
+        }
+
+
+
+
+
+
+
+        // Update all exercise cards to have the click handler
+        $(document).ready(function() {
+            // For the cards in the Exercise Analytics modal too
+            $(".modal-body .card").each(function() {
+                var exerciseId = $(this).data("exercise-id");
+                if (exerciseId) {
+                    $(this).attr("onclick", "showExerciseAnalytics(" + exerciseId + ")");
+                    $(this).css("cursor", "pointer");
+                }
+            });
+        });
+    </script>
+</body>
+</html>
