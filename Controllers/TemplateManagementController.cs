@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PhasePlayWeb.Data;
 using PhasePlayWeb.Models;
@@ -7,21 +6,18 @@ using PhasePlayWeb.Models.Entities;
 
 namespace PhasePlayWeb.Controllers
 {
+    [ApiController]
+    [Route("api/[controller]")]
     public class TemplateManagementController : Controller
     {
         private readonly ILogger<TemplateManagementController> _logger;
         private readonly ApplicationDbContext _databaseContext;
-        private readonly UserManager<User> _userManager;
         private static readonly Random _random = new Random();
-        public TemplateManagementController(ILogger<TemplateManagementController> logger, ApplicationDbContext _databaseContext, UserManager<User> userManager)
+        public TemplateManagementController(ILogger<TemplateManagementController> logger, ApplicationDbContext _databaseContext)
         {
             _logger = logger;
             this._databaseContext = _databaseContext;
-            _userManager = userManager;
         }
-
-        
-
 
         [HttpGet]
         public async Task<IActionResult> Templates()
@@ -29,23 +25,10 @@ namespace PhasePlayWeb.Controllers
             var exercises = await _databaseContext.Excercises.ToListAsync();
             var schema = await _databaseContext.SRSchema.Where(x => x.SetWeek == 1).ToListAsync();
             var userEmail = HttpContext.Request.Cookies["UserEmail"];
-            var user = await _userManager.FindByEmailAsync(userEmail);
-            var programmes = await _databaseContext.Programs.Where(x => x.UserID == user.Id).ToListAsync();
-            var teams = await _databaseContext.Teams.Where(x => x.UserID == user.Id).ToListAsync();
-            var role = await _userManager.GetRolesAsync(user);
-            if (role.Contains("Staff"))
-            {
-                var teamIds = await _databaseContext.TeamMembers.Where(x => x.UserId == user.Id).ToListAsync();
-                teams = new List<Teams>();
-                foreach (var id in teamIds)
-                {
-                    var teamid = await _databaseContext.Teams.Where(x => x.Id == id.TeamId).FirstOrDefaultAsync();
-                    teams.Add(teamid);
-
-                }
-
-
-            }
+            var user = await _databaseContext.Users.FirstOrDefaultAsync(u => u.Email == userEmail);
+            var programmes = user != null ? await _databaseContext.Programs.Where(x => x.UserID == user.Id).ToListAsync() : new List<Programme>();
+            var teams = user != null ? await _databaseContext.Teams.Where(x => x.UserID == user.Id).ToListAsync() : new List<Teams>();
+            // Remove role logic
             var viewModel = new TemplateManagementVM()
             {
                 Exercises = exercises,
@@ -53,8 +36,6 @@ namespace PhasePlayWeb.Controllers
                 Programmes = programmes,
                 Teams = teams
             };
-
-
             return View("Templates", viewModel);
         }
 

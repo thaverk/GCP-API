@@ -10,6 +10,8 @@ using System;
 
 namespace PhasePlayWeb.Controllers
 {
+    [ApiController]
+    [Route("api/[controller]")]
     public class AthleteViewsController : Controller
     {
         private readonly ApplicationDbContext _databaseContext;

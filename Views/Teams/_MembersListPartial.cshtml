@@ -196,12 +196,8 @@
                                 var Role = await userManager.GetRolesAsync(member);
                             }
 
-                            @if (member.EmailConfirmed == false)
-                            {
-                                <td style="color: lightgray;">Pending</td>
-                            }
-                            else
-                            {
+                           
+                           @{
                                 <td style="color: green;">&#10004;</td>
                             }
 
@@ -226,17 +222,7 @@
 
                                 }
                                 &nbsp;&nbsp;
-                                @if (member.EmailConfirmed == false)
-                                {
-                                    @using (Html.BeginForm("ResendVerification", "Teams", FormMethod.Post))
-                                    {
-                                        <input type="hidden" name="Id" value="@member.Id" />
-                                        <button type="submit" class="btn btn-primary">
-                                            <span> Resend Link </span>
-
-                                        </button>
-
-                                    }
+                               
                                 }
                             </td>
                         </tr>

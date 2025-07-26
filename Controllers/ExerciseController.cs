@@ -6,9 +6,13 @@ using PhasePlayWeb.Models;
 using PhasePlayWeb.Models.Entities;
 using System;
 using System.Diagnostics;
+using System.Net.WebSockets;
+using System.Text.Json;
 
 namespace PhasePlayWeb.Controllers
 {
+    [ApiController]
+    [Route("api/[controller]")]
     public class ExerciseController : Controller
     {
 
@@ -24,6 +28,17 @@ namespace PhasePlayWeb.Controllers
         private int GenerateRandomId()
         {
             return _random.Next(1, int.MaxValue);
+        }
+        
+        [HttpGet("ExerciseList")]
+        public async Task<IActionResult>GetExerciseList()
+        {
+            // Get all exercises from the database
+            var exercises = await _databaseContext.Excercises.ToListAsync();
+
+            var serializedExercises = JsonSerializer.Serialize(exercises);
+            // Return the view with the ViewModel
+            return Json(serializedExercises);
         }
 
         [HttpGet]

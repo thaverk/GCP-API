@@ -1,7 +1,7 @@
 ﻿using ExcelDataReader;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
 using Newtonsoft.Json;
 using PhasePlayWeb.Data;
 using PhasePlayWeb.Extensions;
@@ -13,55 +13,50 @@ using System.Diagnostics;
 
 namespace PhasePlayWeb.Controllers
 {
-    public class TeamsController : Controller
+    [ApiController]
+    [Route("api/[controller]")]
+    public class TeamsController : ControllerBase
     {
         private readonly ApplicationDbContext _databaseContext;
-        private readonly UserManager<User> _userManager;
         private readonly IEmailSender _emailSender;
+        private readonly UserManager<PhasePlayWeb.Models.Entities.User> _userManager;
         private static readonly Random _random = new Random();
-        public TeamsController(ApplicationDbContext _databaseContext, UserManager<User> userManager, IEmailSender emailSender)
+        public TeamsController(ApplicationDbContext _databaseContext, IEmailSender emailSender, UserManager<PhasePlayWeb.Models.Entities.User> userManager)
         {
             this._databaseContext = _databaseContext;
-            _userManager = userManager;
             _emailSender = emailSender;
+            _userManager = userManager;
         }
 
-        [HttpGet]
+        [HttpGet("SearchUsers")]
         public async Task<IActionResult> SearchUsers(string searchQuery)
         {
-             var users = await _userManager.Users
-        .Where(u => u.Name.Contains(searchQuery) || u.Email.Contains(searchQuery))
-        .Select(u => new { id = u.Id, name = u.Name, email = u.Email })
-        .ToListAsync();
-
-    return Json(users);
+            var users = await _databaseContext.Users
+                .Where(u => u.Name.Contains(searchQuery) || u.Email.Contains(searchQuery))
+                .Select(u => new { id = u.Id, name = u.Name, email = u.Email })
+                .ToListAsync();
+            return Ok(users);
         }
 
-        [HttpPost]
+        [HttpPost("SearchAndAddMember")]
         public async Task<IActionResult> SearchAndAddMember(string selectedUser, int teamId)
         {
-            // Logic to add the selected user to the team with the specified role
-            var user = await _userManager.FindByIdAsync(selectedUser);
+            var user = await _databaseContext.Users.FirstOrDefaultAsync(u => u.Id.ToString() == selectedUser);
             var team = await _databaseContext.Teams.Where(x => x.Id == teamId).FirstOrDefaultAsync();
             if (user != null)
             {
                 var ismember = await _databaseContext.TeamMembers.Where(x => x.TeamId == teamId & x.UserId == user.Id).FirstOrDefaultAsync();
-                
                 if (ismember != null)
                 {
-                    TempData["Alert"] = $"{user.Name} is already in Team {team.Name}.TryAgain!";
-                    return RedirectToAction(nameof(MembersList));
-
+                    return BadRequest($"{user.Name} is already in Team {team.Name}. Try Again!");
                 }
-                
                 var TeamMember = new TeamMembers
                 {
                     Id = GenerateRandomId(),
                     TeamId = teamId,
                     UserId = user.Id,
-                    UserName = user.Name // Set the required UserName property
+                    UserName = user.Name
                 };
-
                 using (var transaction = await _databaseContext.Database.BeginTransactionAsync())
                 {
                     try
@@ -71,33 +66,26 @@ namespace PhasePlayWeb.Controllers
                         await _databaseContext.SaveChangesAsync();
                         await _databaseContext.Database.ExecuteSqlRawAsync("SET IDENTITY_INSERT [dbo].[TeamMembers] OFF");
                         await transaction.CommitAsync();
-                        TempData["Alert"] = $"{user.Name} has been successfully added to Team {team.Name}";
+                        return Ok($"{user.Name} has been successfully added to Team {team.Name}");
                     }
                     catch (Exception)
                     {
                         await transaction.RollbackAsync();
-
                         throw;
-                        
                     }
-
                 }
             }
-
             else
             {
-                TempData["Alert"] = "Selected User does not exist.TryAgain!";
-               
+                return NotFound("Selected User does not exist. Try Again!");
             }
-            return RedirectToAction(nameof(MembersList));
-            // Redirect to the appropriate action
         }
 
 
-        [HttpPost]
+        [HttpPost("ResendVerification")]
         public async Task<IActionResult> ResendVerification(string id)
         {
-            var user = await _userManager.FindByIdAsync(id);
+            var user = await _databaseContext.Users.FindAsync(id);
             if (user == null)
             {
                 return NotFound();
@@ -105,23 +93,21 @@ namespace PhasePlayWeb.Controllers
             var code = await _userManager.GeneratePasswordResetTokenAsync(user);
             var callbackUrl = Url.ResetPasswordCallbackLink(user.Id, code, Request.Scheme);
             await _emailSender.SendEmailForgotPasswordAsync(user.Email, callbackUrl);
-            return RedirectToAction(nameof(MembersList));
+            return Ok();
         }
 
 
-        [HttpPost]
+        [HttpPost("UploadUsers")]
         public async Task<IActionResult> UploadUsers(IFormFile file, int TeamId, string role)
         {
             if (file == null || file.Length == 0)
             {
-                ModelState.AddModelError(string.Empty, "Please upload a valid Excel file.");
-                return RedirectToAction("UploadExerciseList");
+                return BadRequest("Please upload a valid Excel file.");
             }
 
             if (file.ContentType != "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
             {
-                ModelState.AddModelError(string.Empty, "Invalid file format. Please upload an Excel file.");
-                return RedirectToAction("UploadExerciseList");
+                return BadRequest("Invalid file format. Please upload an Excel file.");
             }
 
             try
@@ -149,9 +135,7 @@ namespace PhasePlayWeb.Controllers
                                 Name = worksheet.Rows[row][0]?.ToString() ?? string.Empty,
                                 Surname = worksheet.Rows[row][1]?.ToString() ?? string.Empty,
                                 Email = worksheet.Rows[row][2]?.ToString() ?? string.Empty,
-                                UserName = worksheet.Rows[row][2]?.ToString() ?? string.Empty,
                                 FirstSignIn = true,
-                                EmailConfirmed = false,
                                 Password = "defaultPassword@1",
 
                             };
@@ -259,15 +243,14 @@ namespace PhasePlayWeb.Controllers
                 // Log the exception (you can use a logging framework like Serilog, NLog, etc.)
 
                 Debug.WriteLine($"Error uploading file: {ex.Message}");
-                ModelState.AddModelError(string.Empty, "An error occurred while processing the file. Please try again.");
-                return RedirectToAction("UploadExerciseList");
+                return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while processing the file. Please try again.");
             }
 
-            return RedirectToAction(nameof(MembersList));
+            return Ok();
         }
 
 
-        [HttpGet]
+        [HttpGet("ViewGroupMembers/{id}")]
         public async Task<IActionResult> ViewGroupMembers(int id)
         {
             var group = await _databaseContext.Groups.FindAsync(id);
@@ -295,9 +278,7 @@ namespace PhasePlayWeb.Controllers
                 }
             }
 
-            ViewBag.GroupName = group.Name;
-
-            return View(groupMembers);
+            return Ok(groupMembers);
         }
 
         private int GenerateRandomId()
@@ -306,6 +287,7 @@ namespace PhasePlayWeb.Controllers
         }
 
 
+        [HttpPost("AddMemberTeam")]
         public async Task<IActionResult> AddMemberTeam(string Name, string Surname, string Email, int TeamId, string role)
 
         {
@@ -313,12 +295,10 @@ namespace PhasePlayWeb.Controllers
             // Create a new User object
             var newUser = new User
             {
-                UserName = Email,
                 Name = Name,
                 Surname = Surname,
                 Email = Email,
                 Password = "defaultPassword@1",
-                EmailConfirmed = false,
                 FirstSignIn = true
             };
 
@@ -409,14 +389,12 @@ namespace PhasePlayWeb.Controllers
 
 
 
-                TempData["Alert"] = "Member have been successfully added!";
-                return RedirectToAction("MembersList");
+                return Ok("Member has been successfully added!");
             }
 
 
 
-            TempData["Alert"] = "Try Again!";
-            return RedirectToAction("MembersList");
+            return BadRequest("Try Again!");
             // Redirect to the appropriate action
 
 
@@ -455,7 +433,7 @@ namespace PhasePlayWeb.Controllers
             return digit;
         }
 
-        [HttpGet]
+        [HttpGet("GetGroupsByTeamId/{teamId}")]
         public async Task<IActionResult> GetGroupsByTeamId(int teamId)
         {
             var groups = await _databaseContext.Groups
@@ -470,7 +448,7 @@ namespace PhasePlayWeb.Controllers
 
             return Ok(groups);
         }
-        [HttpPost]
+        [HttpPost("DeleteGroup")]
         public async Task<IActionResult> DeleteGroup(int id)
         {
             var group = await _databaseContext.Groups.FindAsync(id);
@@ -484,7 +462,7 @@ namespace PhasePlayWeb.Controllers
 
             return Ok();
         }
-        [HttpPost]
+        [HttpPost("CreateGroup")]
         public async Task<IActionResult> CreateGroup([FromBody] CreateGroupRequest request)
         {
             if (ModelState.IsValid)
@@ -517,13 +495,13 @@ namespace PhasePlayWeb.Controllers
                 }
 
                 await _databaseContext.SaveChangesAsync();
-                return RedirectToAction(nameof(MembersList));
+                return Ok();
             }
 
             return BadRequest(ModelState);
         }
 
-        [HttpPost]
+        [HttpPost("GetMembersByTeamId")]
         public async Task<IActionResult> GetMembersByTeamId(int teamId)
         {
             var members = await _databaseContext.TeamMembers
@@ -539,11 +517,11 @@ namespace PhasePlayWeb.Controllers
             }
             ;
             Tuple<List<User>, int> tuple = new Tuple<List<User>, int>(Members, teamId);
-            return PartialView(nameof(_MembersListPartial), tuple);
+            return Ok(tuple);
         }
 
-        [HttpGet]
-        public async Task<JsonResult> GetTeamMembers(int teamId)
+        [HttpGet("GetTeamMembers/{teamId}")]
+        public async Task<IActionResult> GetTeamMembers(int teamId)
         {
 
             var AtheleteGroup = await _databaseContext.Groups
@@ -583,7 +561,6 @@ namespace PhasePlayWeb.Controllers
                 if (us != null)
                 {
                     var role = await _userManager.GetRolesAsync(us);
-
 
 
                     if (role.Contains("Athlete"))
@@ -647,11 +624,11 @@ namespace PhasePlayWeb.Controllers
             // Log the members list to verify the data
             Debug.WriteLine("Members: " + JsonConvert.SerializeObject(Members));
 
-            return Json(Members);
+            return Ok(Members);
         }
 
 
-        [HttpGet]
+        [HttpGet("_MembersListPartial")]
         public IActionResult _MembersListPartial(List<User> Members)
         {
             var members = _databaseContext.Users.ToList(); // Ensure this retrieves the list correctly
@@ -659,23 +636,22 @@ namespace PhasePlayWeb.Controllers
             {
                 members = new List<User>(); // Initialize to an empty list if null
             }
-            return PartialView("_MembersListPartial", Members);
+            return Ok(Members);
         }
 
-        [HttpGet]
+        [HttpGet("AthleteUpload")]
         public async Task<IActionResult> AthleteUpload()
         {
             var athletes = await _databaseContext.Users.ToListAsync();
-            return View(athletes);
+            return Ok(athletes);
         }
 
-        [HttpPost]
+        [HttpPost("EditMember")]
         public async Task<IActionResult> EditMember(string id, string name, string email, string surname)
         {
             if (string.IsNullOrEmpty(name))
             {
-                ModelState.AddModelError(string.Empty, "Member name is required.");
-                return RedirectToAction("MemberList");
+                return BadRequest("Member name is required.");
             }
 
             var athlete = await _userManager.FindByIdAsync(id);
@@ -691,22 +667,20 @@ namespace PhasePlayWeb.Controllers
 
             await _databaseContext.SaveChangesAsync();
 
-            return RedirectToAction(nameof(MembersList));
+            return Ok();
         }
 
-        [HttpPost]
+        [HttpPost("UploadFile")]
         public async Task<IActionResult> UploadFile(IFormFile file, int teamId)
         {
             if (file == null || file.Length == 0)
             {
-                ModelState.AddModelError(string.Empty, "Please upload a valid Excel file.");
-                return RedirectToAction("AthleteUpload", new { id = teamId });
+                return BadRequest("Please upload a valid Excel file.");
             }
 
             if (file.ContentType != "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
             {
-                ModelState.AddModelError(string.Empty, "Invalid file format. Please upload an Excel file.");
-                return RedirectToAction("AthleteUpload", new { id = teamId });
+                return BadRequest("Invalid file format. Please upload an Excel file.");
             }
 
             try
@@ -747,20 +721,19 @@ namespace PhasePlayWeb.Controllers
             {
                 // Log the exception (you can use a logging framework like Serilog, NLog, etc.)
                 Debug.WriteLine($"Error uploading file: {ex.Message}");
-                ModelState.AddModelError(string.Empty, "An error occurred while processing the file. Please try again.");
-                return RedirectToAction("AthleteUpload");
+                return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while processing the file. Please try again.");
             }
 
-            return RedirectToAction("SPDashboard", "Users");
+            return Ok();
         }
 
-        [HttpGet]
+        [HttpGet("TeamBuilder")]
         public IActionResult TeamBuilder()
         {
-            return View();
+            return Ok();
         }
 
-        [HttpPost]
+        [HttpPost("TeamBuilder")]
         public async Task<IActionResult> TeamBuilder(TeamVM teamsVM)
         {
             var useremail = HttpContext.Request.Cookies["UserEmail"];
@@ -802,25 +775,25 @@ namespace PhasePlayWeb.Controllers
             await _databaseContext.Groups.AddAsync(group3);
             await _databaseContext.SaveChangesAsync();
 
-            return RedirectToAction(nameof(MembersList));
+            return Ok();
 
 
         }
 
 
-        [HttpPost]
+        [HttpPost("Skip")]
         public IActionResult Skip()
         {
-            return RedirectToAction("SPDashboard", "Users");
+            return Ok();
         }
-        [HttpPost]
+        [HttpPost("SaveTeam")]
         public IActionResult SaveTeam()
         {
-            return RedirectToAction("SPDashboard", "Users");
+            return Ok();
         }
 
 
-        [HttpGet]
+        [HttpGet("MembersList/{Id}")]
         public async Task<IActionResult> MembersList(int Id)
         {
             var athletes = await _databaseContext.Users.ToListAsync();
@@ -854,12 +827,12 @@ namespace PhasePlayWeb.Controllers
                     .ToList(),
             };
 
-            return View(viewModel);
+            return Ok(viewModel);
         }
 
 
 
-        [HttpGet]
+        [HttpGet("GetGroupDetails/{groupId}")]
         public async Task<IActionResult> GetGroupDetails(int groupId)
         {
             var group = _databaseContext.Groups.FirstOrDefault(x => x.Id == groupId);
@@ -934,21 +907,21 @@ namespace PhasePlayWeb.Controllers
 
             var tuple = new Tuple<Groups, List<User>, List<User>>(group, groupMemberDetails, TeamMembers);
 
-            return PartialView("_GroupDetailsPartial", tuple);
+            return Ok(tuple);
         }
 
 
-        [HttpGet]
+        [HttpGet("SearchMember")]
         public IActionResult SearchMember(string query)
         {
             var member = _databaseContext.Users
                 .Where(e => e.Name.Contains(query))
                 .ToList();
 
-            return View("MembersList", member);
+            return Ok(member);
         }
 
-        [HttpPost]
+        [HttpPost("DeleteMember")]
         public async Task<IActionResult> DeleteMember(string Id, int TeamId)
         {
             var member = await _userManager.FindByIdAsync(Id);
@@ -965,7 +938,7 @@ namespace PhasePlayWeb.Controllers
 
             }
 
-            return RedirectToAction("MembersList");
+            return Ok();
         }
 
 
@@ -973,17 +946,17 @@ namespace PhasePlayWeb.Controllers
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+            return Problem("An error occurred.");
         }
 
 
-        [HttpPost]
+        [HttpPost("AddMemberToGroup")]
         public IActionResult AddMemberToGroup([FromBody] AddMemberToGroupRequest vm)
         {
             var group = _databaseContext.Groups.FirstOrDefault(g => g.Id == vm.GroupId);
             if (group == null)
             {
-                return Json(new { success = false, message = "Group not found" });
+                return BadRequest(new { success = false, message = "Group not found" });
             }
 
             foreach (var memberId in vm.Members)
@@ -1002,7 +975,7 @@ namespace PhasePlayWeb.Controllers
 
             _databaseContext.SaveChanges();
 
-            return Json(new { success = true });
+            return Ok(new { success = true });
         }
     }
 

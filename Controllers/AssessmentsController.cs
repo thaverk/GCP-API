@@ -19,11 +19,6 @@ namespace PhasePlayWeb.Controllers
             _userManager = userManager;
         }
 
-        public async Task<IActionResult> AssessmentView()
-        {
-            var playerPhysicalTestings = await _databaseContext.PlayerPhysicalTesting.ToListAsync();
-            return View(playerPhysicalTestings);
-            //return View();
-        }
+      
     }
 }

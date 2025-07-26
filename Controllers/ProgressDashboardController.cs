@@ -7,6 +7,8 @@ using PhasePlayWeb.Models.Entities;
 
 namespace PhasePlayWeb.Controllers
 {
+    [ApiController]
+    [Route("api/[controller]")]
     public class ProgressDashboardController : Controller
     {
         private readonly ILogger<ProgressDashboardController> _logger;

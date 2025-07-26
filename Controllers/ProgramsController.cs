@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PhasePlayWeb.Data;
 using PhasePlayWeb.Models;
@@ -9,17 +8,17 @@ using System.Diagnostics;
 
 namespace PhasePlayWeb.Controllers
 {
+    [ApiController]
+    [Route("api/[controller]")]
     public class ProgramsController : Controller
     {
         private readonly ILogger<ProgramsController> _logger;
         private readonly ApplicationDbContext _databaseContext;
-        private readonly UserManager<User> _userManager;
 
-        public ProgramsController(ILogger<ProgramsController> logger, ApplicationDbContext _databaseContext, UserManager<User> userManager)
+        public ProgramsController(ILogger<ProgramsController> logger, ApplicationDbContext _databaseContext)
         {
             _logger = logger;
             this._databaseContext = _databaseContext;
-            _userManager = userManager;
         }
 
         [HttpGet]
@@ -29,7 +28,7 @@ namespace PhasePlayWeb.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> WorkoutBuilder(ProgrammeVM vm, ProgramAttributes attributes)
+        public async Task<IActionResult> WorkoutBuilder(ProgrammeVM vm, [FromQuery] ProgramAttributes attributes)
         {
             // Retrieve the user's email from the cookies
             var userEmail = HttpContext.Request.Cookies["UserEmail"];
@@ -568,7 +567,7 @@ namespace PhasePlayWeb.Controllers
         }
 
         [HttpPatch]
-        public async Task<IActionResult> WarmAndMobil(Programme program, ProgramAttributesVM vm, SetsVM setsVM)
+        public async Task<IActionResult> WarmAndMobil([FromBody] Programme program, [FromQuery] ProgramAttributesVM vm, [FromQuery] SetsVM setsVM)
         {
             // Fetch all ProgramAttributes associated with the given program's ID from the database asynchronously.
             var attributes = await _databaseContext.ProgramAttributes.Where(x => x.ProgramID == program.id).ToListAsync();
@@ -603,7 +602,7 @@ namespace PhasePlayWeb.Controllers
         }
         //Understand
         [HttpPost]
-        public async Task<IActionResult> EditSets(List<SetVM> sets, DisplayPageVM vm)
+        public async Task<IActionResult> EditSets([FromForm] List<SetVM> sets, [FromForm] DisplayPageVM vm)
         {
             //These lines extract the ProgramID, Name, and AddNote from the first SetVM object in the sets list.
             int id = sets[0].ProgramID;
@@ -998,7 +997,7 @@ namespace PhasePlayWeb.Controllers
             try
             {
                 var email = HttpContext.Request.Cookies["UserEmail"];
-                var user = await _userManager.FindByEmailAsync(email);
+                var user = await _databaseContext.Users.FirstOrDefaultAsync(u => u.Email == email);
                 if (user == null)
                 {
                     _logger.LogWarning("User not found with email: {Email}", email);

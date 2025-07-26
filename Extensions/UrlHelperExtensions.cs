@@ -8,7 +8,7 @@ namespace PhasePlayWeb.Extensions
         public static string EmailConfirmationLink(this IUrlHelper urlHelper, string userId, string code, string scheme)
         {
             return urlHelper.Action(
-                action: nameof(UsersController.ConfirmEmail),
+                action: nameof(UsersController),
                 controller: "Users",
                 values: new { userId, code },
                 protocol: scheme);
@@ -17,7 +17,7 @@ namespace PhasePlayWeb.Extensions
         public static string ResetPasswordCallbackLink(this IUrlHelper urlHelper, string userId, string code, string scheme)
         {
             return urlHelper.Action(
-                action: nameof(UsersController.ResetPassword),
+                action: nameof(UsersController),
                 controller: "Users",
                 values: new { userId, code },
                 protocol: scheme);
