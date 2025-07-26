@@ -65,16 +65,7 @@ using(var scope = app.Services.CreateScope())
         logger.LogError(ex, "An error occurred while starting the application.");
     }
 }
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowFlutter",
-        policy =>
-        {
-            policy.WithOrigins("http://localhost:3000", "http://localhost:8080") // Flutter web ports
-                  .AllowAnyHeader()
-                  .AllowAnyMethod();
-        });
-});
+
 
 // After building the app
 app.UseCors("AllowFlutter");
