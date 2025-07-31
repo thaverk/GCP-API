@@ -21,11 +21,10 @@ namespace PhasePlayWeb.Controllers
         private readonly IEmailSender _emailSender;
         private readonly UserManager<PhasePlayWeb.Models.Entities.User> _userManager;
         private static readonly Random _random = new Random();
-        public TeamsController(ApplicationDbContext _databaseContext, IEmailSender emailSender, UserManager<PhasePlayWeb.Models.Entities.User> userManager)
+        public TeamsController(ApplicationDbContext _databaseContext, IEmailSender emailSender)
         {
             this._databaseContext = _databaseContext;
             _emailSender = emailSender;
-            _userManager = userManager;
         }
 
         [HttpGet("SearchUsers")]

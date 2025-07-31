@@ -50,6 +50,9 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
+app.UseCors("AllowAll");
+// Add this line
+app.MapControllers();
 
 app.MapControllerRoute(
     name: "default",
@@ -76,7 +79,7 @@ using(var scope = app.Services.CreateScope())
 
 
 // After building the app
-app.UseCors("AllowFlutter");
+//app.UseCors("AllowFlutter");
 
 
 app.Run();
