@@ -16,7 +16,7 @@ namespace PhasePlayWeb.Models.Entities
         [ForeignKey(nameof(User))]
 
         public string UserID { get; set; }
-        public User User { get; set; }
+      //  public User User { get; set; }
 
     }
 }

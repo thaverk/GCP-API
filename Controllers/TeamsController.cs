@@ -737,7 +737,12 @@ namespace PhasePlayWeb.Controllers
         {
             // var useremail = HttpContext.Request.Cookies["UserEmail"];
             //  var user = await _databaseContext.Users.FirstOrDefaultAsync(u => u.Email == useremail);
+            var user1 = await _databaseContext.Users.Where(x => x.Id == UserTeam.UserTeam.UserID).FirstOrDefaultAsync();
+            if (user1 == null)
+            {
+                return BadRequest();
 
+            }
             var team = new Teams
             {
                 Name = UserTeam.UserTeam.Name,
@@ -781,21 +786,23 @@ namespace PhasePlayWeb.Controllers
                 }
 
                 var teamMember = new TeamMembers
-                    {
-                        Id = GenerateRandomId(),
-                        TeamId = team.Id,
-                        UserId = memberId,
-                        UserName = user.Name // Set the required UserName property
-                    };
-                    await _databaseContext.TeamMembers.AddAsync(teamMember);
-                    // Add to the "Team" group
-                    var groupMember = new GroupMembers
-                    {
-                        GroupId = group1.Id,
-                        UserId = user.Id
-                    };
-                    await _databaseContext.GroupMembers.AddAsync(groupMember);
-                
+                {
+                    Id = GenerateRandomId(),
+                    TeamId = team.Id,
+                    UserId = memberId,
+                    UserName = user.Name // Set the required UserName property
+                };
+                await _databaseContext.TeamMembers.AddAsync(teamMember);
+                await _databaseContext.SaveChangesAsync();
+                // Add to the "Team" group
+                var groupMember = new GroupMembers
+                {
+                    GroupId = group1.Id,
+                    UserId = user.Id
+                };
+                await _databaseContext.GroupMembers.AddAsync(groupMember);
+                await _databaseContext.SaveChangesAsync();
+
             }
 
             return Ok();
@@ -964,7 +971,7 @@ namespace PhasePlayWeb.Controllers
             return Ok();
         }
 
-        [HttpGet("GetTeamsList")]
+        [HttpPost("GetTeamsList")]
         public async Task<IActionResult> GetTeamsList([FromBody]string Userid)
         {
             var user = await _databaseContext.Users.FirstOrDefaultAsync(u => u.Id == Userid);
