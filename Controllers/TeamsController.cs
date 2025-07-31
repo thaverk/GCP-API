@@ -733,19 +733,16 @@ namespace PhasePlayWeb.Controllers
             return Ok();
         }
 
-        [HttpPost("TeamBuilder")]
-        public async Task<IActionResult> TeamBuilder(TeamVM teamsVM)
+        [HttpPost("CreateTeam")]
+        public async Task<IActionResult> TeamBuilder([FromBody] Teams UserTeam)
         {
-            var useremail = HttpContext.Request.Cookies["UserEmail"];
-            var user = await _databaseContext.Users.FirstOrDefaultAsync(u => u.Email == useremail);
-            if (user == null)
-            {
-                return NotFound();
-            }
+           // var useremail = HttpContext.Request.Cookies["UserEmail"];
+          //  var user = await _databaseContext.Users.FirstOrDefaultAsync(u => u.Email == useremail);
+           
             var team = new Teams
             {
-                Name = teamsVM.Name,
-                UserID = user.Id
+                Name = UserTeam.Name,
+                UserID = UserTeam.UserID
             };
             await _databaseContext.Teams.AddAsync(team);
             await _databaseContext.SaveChangesAsync();
