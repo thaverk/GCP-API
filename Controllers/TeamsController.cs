@@ -733,15 +733,15 @@ namespace PhasePlayWeb.Controllers
         }
 
         [HttpPost("CreateTeam")]
-        public async Task<IActionResult> TeamBuilder([FromBody] Teams UserTeam,[FromBody] string[] memberIds)
+        public async Task<IActionResult> TeamBuilder([FromBody] TeamBuilderRequest UserTeam)
         {
             // var useremail = HttpContext.Request.Cookies["UserEmail"];
             //  var user = await _databaseContext.Users.FirstOrDefaultAsync(u => u.Email == useremail);
 
             var team = new Teams
             {
-                Name = UserTeam.Name,
-                UserID = UserTeam.UserID
+                Name = UserTeam.UserTeam.Name,
+                UserID = UserTeam.UserTeam.UserID
             };
             await _databaseContext.Teams.AddAsync(team);
             await _databaseContext.SaveChangesAsync();
@@ -771,7 +771,7 @@ namespace PhasePlayWeb.Controllers
             await _databaseContext.Groups.AddAsync(group3);
             await _databaseContext.SaveChangesAsync();
 
-            foreach (var memberId in memberIds)
+            foreach (var memberId in UserTeam.MemberIds)
             {
                 var user = await _databaseContext.Users.FirstOrDefaultAsync(u => u.Id == memberId);
 
