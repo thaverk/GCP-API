@@ -735,9 +735,9 @@ namespace PhasePlayWeb.Controllers
         [HttpPost("CreateTeam")]
         public async Task<IActionResult> TeamBuilder([FromBody] Teams UserTeam)
         {
-           // var useremail = HttpContext.Request.Cookies["UserEmail"];
-          //  var user = await _databaseContext.Users.FirstOrDefaultAsync(u => u.Email == useremail);
-           
+            // var useremail = HttpContext.Request.Cookies["UserEmail"];
+            //  var user = await _databaseContext.Users.FirstOrDefaultAsync(u => u.Email == useremail);
+
             var team = new Teams
             {
                 Name = UserTeam.Name,
@@ -937,7 +937,26 @@ namespace PhasePlayWeb.Controllers
             return Ok();
         }
 
-
+        [HttpGet("GetTeamsList")]
+        public async Task<IActionResult> GetTeamsList([FromBody]string Userid)
+        {
+            var user = await _databaseContext.Users.FirstOrDefaultAsync(u => u.Id == Userid);
+            if (user == null)
+            {
+                return NotFound("User not found.");
+            }
+            var teams = await _databaseContext.Teams
+                .Where(t => t.UserID == user.Id)
+                .Select(t => new
+                {
+                    t.Id,
+                    t.Name,
+                    MembersCount = _databaseContext.TeamMembers.Count(tm => tm.TeamId == t.Id),
+                    GroupsCount = _databaseContext.Groups.Count(g => g.TeamID == t.Id)
+                })
+                .ToListAsync();
+            return Ok(teams);
+        }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
